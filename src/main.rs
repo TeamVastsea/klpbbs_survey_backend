@@ -1,5 +1,6 @@
 use axum::extract::DefaultBodyLimit;
 use axum::http::HeaderValue;
+use axum::Router;
 use axum_server::tls_rustls::RustlsConfig;
 use lazy_static::lazy_static;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
@@ -66,7 +67,8 @@ async fn main() {
     Migrator::up(&*DATABASE, None).await.unwrap();
 
     let origins = CORE_CONFIG.origins.clone().iter().map(|x| x.parse().unwrap()).collect::<Vec<HeaderValue>>();
-    let app = controller::all_routers()
+    let app = Router::new()
+        .nest("/api", controller::all_routers())
         .layer(TraceLayer::new(
             StatusInRangeAsFailures::new(400..=599).into_make_classifier()
         ))
