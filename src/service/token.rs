@@ -12,7 +12,7 @@ lazy_static! {
 pub async fn create_token() -> String {
     let token: String = rand::thread_rng()
         .sample_iter(&rand::distributions::Alphanumeric)
-        .take(10)
+        .take(16)
         .map(char::from)
         .collect();
 
