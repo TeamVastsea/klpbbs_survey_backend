@@ -23,6 +23,8 @@ use crate::config::get_config;
 
 mod config;
 mod controller;
+mod model;
+mod service;
 
 lazy_static! {
     static ref CORE_CONFIG: CoreConfig = get_config("core");
