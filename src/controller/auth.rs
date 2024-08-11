@@ -1,5 +1,8 @@
-pub async fn get_token() {
-    
+use axum::http::HeaderMap;
+use crate::controller::error::ErrorMessage;
+
+pub async fn get_token() -> String {
+    crate::service::token::create_token().await
 }
 
 pub async fn get_user_id(headers: HeaderMap) -> Result<String, ErrorMessage> {
