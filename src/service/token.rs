@@ -34,7 +34,7 @@ pub async fn get_user_id(token: &str) -> Option<UserData> {
     TOKEN_CACHE.get(token).await.unwrap_or(None)
 }
 
-pub struct TokenInfo(pub i64);
+pub struct TokenInfo(pub UserData);
 
 #[async_trait]
 impl<S> FromRequestParts<S> for TokenInfo
