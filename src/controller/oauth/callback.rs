@@ -7,13 +7,11 @@ use crate::OAUTH_CONFIG;
 use crate::service::token::activate_token;
 
 pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) {
-    debug!("oauth_callback: {:?}", query);
-    let (user, group) = get_oauth_login(query.token).await.unwrap();
-    activate_token(&query.state, user).await;
-    debug!("user: {}, group: {}, token: {}", user, group, query.state);
+    let data = get_oauth_login(query.token).await.unwrap();
+    activate_token(&query.state, data).await;
 }
 
-async fn get_oauth_login(token: String) -> Result< (i64, String), String> {
+async fn get_oauth_login(token: String) -> Result<UserData, String> {
     let res = Client::new()
         .get("https://klpbbs.com/plugin.php")
         .query(&OAuthLoginQuery::new(token))
@@ -24,8 +22,8 @@ async fn get_oauth_login(token: String) -> Result< (i64, String), String> {
         .await
         .map_err(|e| e.to_string())?;
     
-    println!("{:?}", res);
-    Ok((1, "111".to_string()))
+    let user: User = serde_json::from_str(&res).map_err(|e| e.to_string())?;
+    Ok(user.data)
 }
 
 #[derive(Deserialize, Debug)]
@@ -51,4 +49,22 @@ impl OAuthLoginQuery {
             token,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct UserData {
+    uid: String,
+    username: String,
+    #[serde(skip_serializing)]
+    groupid: String,
+    #[serde(skip_serializing)]
+    regdate: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct User {
+    code: i64,
+    msg: String,
+    time: i64,
+    data: UserData,
 }
