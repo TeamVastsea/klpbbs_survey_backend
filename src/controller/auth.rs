@@ -11,8 +11,8 @@ pub async fn get_user(headers: HeaderMap) -> Result<String, ErrorMessage> {
     
     debug!("token: {:?}", token);
 
-    Ok(crate::service::token::get_user_id(token.to_str().unwrap())
+    crate::service::token::get_user_id(token.to_str().unwrap())
         .await
         .map(|data| serde_json::to_string(&data).unwrap())
-        .ok_or(ErrorMessage::InvalidToken)?)
+        .ok_or(ErrorMessage::InvalidToken)
 }
