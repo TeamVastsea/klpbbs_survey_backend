@@ -3,24 +3,28 @@ use axum::http::HeaderValue;
 use axum::Router;
 use axum_server::tls_rustls::RustlsConfig;
 use lazy_static::lazy_static;
-use sea_orm::{ConnectOptions, Database, DatabaseConnection};
+use sea_orm::ActiveValue::Set;
+use sea_orm::{ActiveModelTrait, ConnectOptions, Database, DatabaseConnection, NotSet};
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
+use tracing::log::{warn, LevelFilter};
 use tracing::{debug, info};
-use tracing::log::{LevelFilter, warn};
 use tracing_appender::non_blocking;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
-use tracing_subscriber::{EnvFilter, fmt, Registry};
 use tracing_subscriber::fmt::time::ChronoLocal;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{fmt, EnvFilter, Registry};
 
 use migration::{Migrator, MigratorTrait};
 
 use crate::config::core::CoreConfig;
 use crate::config::get_config;
+use crate::config::oauth::OAuthConfig;
+use crate::model::generated::prelude::Question;
+use crate::model::generated::question;
 
 mod config;
 mod controller;
@@ -29,6 +33,7 @@ mod service;
 
 lazy_static! {
     static ref CORE_CONFIG: CoreConfig = get_config("core");
+    static ref OAUTH_CONFIG: OAuthConfig = get_config("oauth");
     static ref DATABASE: DatabaseConnection = {
         let mut opt = ConnectOptions::new(&CORE_CONFIG.db_uri);
         opt.sqlx_logging(true);

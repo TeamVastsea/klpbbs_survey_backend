@@ -4,6 +4,7 @@ use axum::response::{IntoResponse, Response};
 pub enum ErrorMessage {
     InvalidParams(String),
     InvalidToken,
+    TokenNotActivated,
     PermissionDenied,
     NotFound,
     Other(String),
@@ -20,6 +21,10 @@ impl IntoResponse for ErrorMessage {
 
             ErrorMessage::InvalidToken => {
                 builder.status(StatusCode::UNAUTHORIZED).body("Invalid token.".into()).unwrap()
+            }
+            
+            ErrorMessage::TokenNotActivated => {
+                builder.status(StatusCode::UNAUTHORIZED).body("Token not activated.".into()).unwrap()
             }
 
             ErrorMessage::PermissionDenied => {

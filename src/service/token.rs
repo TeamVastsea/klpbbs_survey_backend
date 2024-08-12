@@ -1,7 +1,11 @@
 use std::time::Duration;
+use axum::async_trait;
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
 use lazy_static::lazy_static;
 use moka::future::Cache;
 use rand::Rng;
+use crate::controller::error::ErrorMessage;
 
 lazy_static! {
     static ref TOKEN_CACHE: Cache<String, Option<i64>> = Cache::builder()
@@ -27,4 +31,24 @@ pub async fn activate_token(token: &str, user_id: i64) {
 
 pub async fn get_user_id(token: &str) -> Option<i64> {
     TOKEN_CACHE.get(token).await.unwrap_or(None)
+}
+
+pub struct TokenInfo(pub i64);
+
+#[async_trait]
+impl<S> FromRequestParts<S> for TokenInfo
+where S: Send + Sync {
+    type Rejection = ErrorMessage;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let headers = &parts.headers;
+        let token = headers.get("token")
+            .ok_or(ErrorMessage::InvalidToken)?
+            .to_str()
+            .map_err(|_| ErrorMessage::InvalidToken)?;
+        let user = get_user_id(token).await
+            .ok_or(ErrorMessage::TokenNotActivated)?;
+
+        Ok(TokenInfo(user))
+    }
 }
