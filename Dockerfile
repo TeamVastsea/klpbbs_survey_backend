@@ -19,7 +19,7 @@ RUN cargo build --release
 # build slim image
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
-COPY --from=builder /app/target/release/toyou-backend /usr/app/toyou-backend
+COPY --from=builder /app/target/release/klpbbs_survey_backend /usr/app/klpbbs_survey_backend
 
 RUN \
   apt-get update && \
@@ -33,4 +33,4 @@ RUN \
   
 WORKDIR /usr/app
 
-CMD ["/usr/app/toyou-backend"]
+CMD ["/usr/app/klpbbs_survey_backend"]
