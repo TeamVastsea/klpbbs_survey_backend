@@ -55,10 +55,6 @@ impl OAuthLoginQuery {
 pub struct UserData {
     uid: String,
     username: String,
-    #[serde(skip_serializing)]
-    groupid: String,
-    #[serde(skip_serializing)]
-    regdate: String,
 }
 
 #[derive(Serialize, Deserialize)]
