@@ -29,7 +29,7 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/klpbbs_survey_backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/klpbbs-survey-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
   deploy:
