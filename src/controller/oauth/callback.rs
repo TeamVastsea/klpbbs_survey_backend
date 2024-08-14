@@ -1,10 +1,9 @@
+use crate::service::token::activate_token;
+use crate::OAUTH_CONFIG;
 use axum::extract::Query;
 use futures::TryFutureExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use tracing::debug;
-use crate::OAUTH_CONFIG;
-use crate::service::token::activate_token;
 
 pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) {
     let data = get_oauth_login(query.token).await.unwrap();
@@ -53,7 +52,7 @@ impl OAuthLoginQuery {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UserData {
-    uid: String,
+    pub uid: String,
     username: String,
 }
 

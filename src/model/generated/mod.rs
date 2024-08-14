@@ -4,3 +4,4 @@ pub mod prelude;
 
 pub mod page;
 pub mod question;
+pub mod survey;
