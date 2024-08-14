@@ -2,3 +2,4 @@
 
 pub use super::page::Entity as Page;
 pub use super::question::Entity as Question;
+pub use super::survey::Entity as Survey;
