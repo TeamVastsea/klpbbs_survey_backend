@@ -36,6 +36,7 @@ reqwest = "0.12.5"
 migration = {path = "migration"}
 sea-orm = { version = "0.12.15", features = ["macros", "sqlx-postgres", "runtime-tokio-rustls"] }
 futures = "0.3.30"
+chrono = "0.4.38"
 
 
 [build-dependencies]
