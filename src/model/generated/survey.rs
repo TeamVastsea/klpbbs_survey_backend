@@ -12,6 +12,7 @@ pub struct Model {
     pub budge: String,
     pub description: String,
     pub image: String,
+    pub page: i32,
     pub start_date: DateTime,
     pub end_date: DateTime,
 }
