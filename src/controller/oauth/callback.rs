@@ -53,7 +53,7 @@ impl OAuthLoginQuery {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UserData {
-    uid: String,
+    pub uid: String,
     username: String,
 }
 
