@@ -46,4 +46,4 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd ${{ secrets.PROJ_PATH }}
-            sudo ./backend_deploy.sh
+            sudo bash ./backend_deploy.sh
