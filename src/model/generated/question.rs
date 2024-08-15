@@ -7,11 +7,10 @@ use serde::Serialize;
 #[sea_orm(table_name = "question")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: Uuid,
-    #[sea_orm(column_type = "Text")]
-    pub content: String,
+    pub id: String,
+    pub content: Json,
     pub r#type: i32,
-    pub values: Option<Vec<String>>,
+    pub values: Option<Vec<Json>>,
     #[sea_orm(column_type = "Text", nullable)]
     pub condition: Option<String>,
 }

@@ -7,9 +7,9 @@ use serde::Serialize;
 #[sea_orm(table_name = "page")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: Uuid,
+    pub id: String,
     pub title: String,
-    pub content: Vec<i32>,
+    pub content: Vec<String>,
     pub next: Option<i32>,
 }
 

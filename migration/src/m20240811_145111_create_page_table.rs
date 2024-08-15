@@ -13,12 +13,12 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(Page::Id)
-                            .uuid()
+                            .char_len(36)
                             .not_null()
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Page::Title).string().not_null())
-                    .col(ColumnDef::new(Page::Content).array(ColumnType::Integer).not_null())
+                    .col(ColumnDef::new(Page::Content).array(ColumnType::Char(Some(36))).not_null())
                     .col(ColumnDef::new(Page::Next).integer().null())
                     .to_owned(),
             )

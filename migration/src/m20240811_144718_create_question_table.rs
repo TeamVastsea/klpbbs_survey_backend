@@ -13,13 +13,13 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(Question::Id)
-                            .uuid()
+                            .char_len(36)
                             .not_null()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Question::Content).text().not_null())
+                    .col(ColumnDef::new(Question::Content).json().not_null())
                     .col(ColumnDef::new(Question::Type).integer().not_null())
-                    .col(ColumnDef::new(Question::Values).array(ColumnType::Text).null())
+                    .col(ColumnDef::new(Question::Values).array(ColumnType::Json).null())
                     .col(ColumnDef::new(Question::Condition).text().null())
                     .to_owned(),
             )

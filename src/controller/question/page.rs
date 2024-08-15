@@ -1,5 +1,6 @@
 use axum::extract::Query;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::prelude::Uuid;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use crate::controller::error::ErrorMessage;
@@ -21,5 +22,5 @@ pub async fn get_page(Query(query): Query<GetPageQuery>, TokenInfo(user): TokenI
 
 #[derive(Deserialize)]
 pub struct GetPageQuery {
-    page: u32
+    page: String,
 }
