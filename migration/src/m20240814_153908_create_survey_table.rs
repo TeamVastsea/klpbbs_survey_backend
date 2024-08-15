@@ -22,7 +22,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Survey::Budge).char_len(10).not_null())
                     .col(ColumnDef::new(Survey::Description).string().not_null())
                     .col(ColumnDef::new(Survey::Image).string().not_null())
-                    .col(ColumnDef::new(Survey::Page).integer().not_null())
+                    .col(ColumnDef::new(Survey::Page).uuid().not_null())
                     .col(ColumnDef::new(Survey::StartDate).timestamp().not_null())
                     .col(ColumnDef::new(Survey::EndDate).timestamp().not_null())
                     .to_owned(),

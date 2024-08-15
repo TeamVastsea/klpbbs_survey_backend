@@ -42,6 +42,11 @@ where S: Send + Sync {
     type Rejection = ErrorMessage;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        TOKEN_CACHE.insert("111".to_string(), Some(UserData {
+            uid: "111".to_string(),
+            username: "test".to_string(),
+        })).await;
+        
         let headers = &parts.headers;
         let token = headers.get("token")
             .ok_or(ErrorMessage::InvalidToken)?

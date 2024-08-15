@@ -6,8 +6,8 @@ use serde::Serialize;
 #[derive(Serialize, Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "page")]
 pub struct Model {
-    #[sea_orm(primary_key)]
-    pub id: i32,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub id: Uuid,
     pub title: String,
     pub content: Vec<i32>,
     pub next: Option<i32>,
