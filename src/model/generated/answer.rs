@@ -12,7 +12,7 @@ pub struct Model {
     pub judge: Option<i64>,
     pub answers: Json,
     pub score: Option<i32>,
-    pub creat_time: DateTime,
+    pub create_time: DateTime,
     pub judged_time: Option<DateTime>,
 }
 
