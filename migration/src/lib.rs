@@ -3,6 +3,7 @@ pub use sea_orm_migration::prelude::*;
 mod m20240811_144718_create_question_table;
 mod m20240811_145111_create_page_table;
 mod m20240814_153908_create_survey_table;
+mod m20240816_073728_create_answer_table;
 
 pub struct Migrator;
 
@@ -13,6 +14,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240811_144718_create_question_table::Migration),
             Box::new(m20240811_145111_create_page_table::Migration),
             Box::new(m20240814_153908_create_survey_table::Migration),
+            Box::new(m20240816_073728_create_answer_table::Migration),
         ]
     }
 }
