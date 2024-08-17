@@ -9,17 +9,16 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Page::Table)
+                    .table(Admin::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(Page::Id)
-                            .char_len(36)
+                        ColumnDef::new(Admin::Id)
+                            .big_unsigned()
                             .not_null()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Page::Title).string().not_null())
-                    .col(ColumnDef::new(Page::Content).array(ColumnType::Char(Some(36))).not_null())
-                    .col(ColumnDef::new(Page::Next).char_len(36).null())
+                    .col(ColumnDef::new(Admin::Username).string().not_null())
+                    .col(ColumnDef::new(Admin::Disabled).boolean().not_null().default(false))
                     .to_owned(),
             )
             .await
@@ -27,16 +26,15 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Page::Table).to_owned())
+            .drop_table(Table::drop().table(Admin::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum Page {
+enum Admin {
     Table,
     Id,
-    Title,
-    Content,
-    Next,
+    Username,
+    Disabled,
 }

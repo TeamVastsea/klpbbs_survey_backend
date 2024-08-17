@@ -1,18 +1,14 @@
-use axum::extract::Query;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
-use sea_orm::prelude::Uuid;
-use serde::{Deserialize, Serialize};
-use tracing::info;
 use crate::controller::error::ErrorMessage;
-use crate::DATABASE;
-use crate::model::generated::page;
-use crate::model::generated::prelude::Page;
+use crate::service::questions::get_page_by_id;
 use crate::service::token::TokenInfo;
+use axum::extract::Query;
+use serde::Deserialize;
+use tracing::info;
 
 pub async fn get_page(Query(query): Query<GetPageQuery>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     info!("User {} is trying to get page {}", user.uid, query.page);
     
-    let Some(page) = Page::find().filter(page::Column::Id.eq(query.page)).one(&*DATABASE).await.unwrap()
+    let Some(page) = get_page_by_id(query.page).await
         else { 
             return Err(ErrorMessage::NotFound);
         };

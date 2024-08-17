@@ -17,7 +17,7 @@ use tracing_subscriber::fmt::time::ChronoLocal;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter, Registry};
-
+use uuid::Uuid;
 use migration::{Migrator, MigratorTrait};
 
 use crate::config::core::CoreConfig;
@@ -25,6 +25,9 @@ use crate::config::get_config;
 use crate::config::oauth::OAuthConfig;
 use crate::model::generated::prelude::Question;
 use crate::model::generated::question;
+use crate::model::question::{Condition, ConditionInner, ConditionType, QuestionType};
+use crate::model::ValueWithTitle;
+use crate::service::questions::save_question;
 
 mod config;
 mod controller;
@@ -70,6 +73,31 @@ async fn main() {
         .init();
 
     Migrator::up(&*DATABASE, None).await.unwrap();
+
+    // let question = crate::model::question::Question {
+    //     id: Uuid::new_v4(),
+    //     content: ValueWithTitle {
+    //         title: "title".to_string(),
+    //         content: "content".to_string()
+    //     },
+    //     r#type: QuestionType::SingleChoice,
+    //     values: Some(vec![ValueWithTitle {
+    //         title: "title".to_string(),
+    //         content: "content".to_string()
+    //     }]),
+    //     condition: Some(vec![Condition {
+    //         r#type: ConditionType::And,
+    //         conditions: vec![ConditionInner {
+    //             id: Uuid::new_v4(),
+    //             value: "value".to_string()
+    //         }]
+    //     }]),
+    //     required: false
+    // };
+    // 
+    // println!("{}", serde_json::to_string(&question).unwrap());
+
+    // save_question(question, None).await;
 
     let origins = CORE_CONFIG.origins.clone().iter().map(|x| x.parse().unwrap()).collect::<Vec<HeaderValue>>();
     let app = Router::new()

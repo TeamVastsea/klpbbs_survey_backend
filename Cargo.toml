@@ -37,6 +37,8 @@ migration = {path = "migration"}
 sea-orm = { version = "0.12.15", features = ["macros", "sqlx-postgres", "runtime-tokio-rustls"] }
 futures = "0.3.30"
 chrono = "0.4.38"
+uuid = { version = "1.9.1", features = ["v4"] }
+ciborium = "0.2.2"
 
 
 [build-dependencies]

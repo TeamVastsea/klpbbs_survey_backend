@@ -2,6 +2,7 @@
 
 pub mod prelude;
 
+pub mod admin;
 pub mod answer;
 pub mod page;
 pub mod question;

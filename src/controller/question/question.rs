@@ -1,17 +1,13 @@
 use crate::controller::error::ErrorMessage;
-use crate::model::generated::prelude::Question;
-use crate::model::generated::question;
-use crate::DATABASE;
-use axum::extract::Path;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
-use sea_orm::prelude::Uuid;
-use tracing::info;
+use crate::service::questions::get_question_by_id;
 use crate::service::token::TokenInfo;
+use axum::extract::Path;
+use tracing::info;
 
 pub async fn get_question(Path(question): Path<String>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     info!("User {} is trying to get question {}", user.uid, question);
     
-    let Some(page) = Question::find().filter(question::Column::Id.eq(question)).one(&*DATABASE).await.unwrap()
+    let Some(page) = get_question_by_id(question).await
     else {
         return Err(ErrorMessage::NotFound);
     };
