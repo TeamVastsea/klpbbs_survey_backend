@@ -28,6 +28,12 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .default(true),
                     )
+                    .add_column_if_not_exists(
+                        ColumnDef::new(Survey::AllowReSubmit)
+                            .boolean()
+                            .not_null()
+                            .default(false),
+                    )
                     .to_owned(),
             )
             .await
@@ -45,4 +51,5 @@ enum Survey {
     AllowSubmit,
     AllowView,
     AllowJudge,
+    AllowReSubmit,
 }
