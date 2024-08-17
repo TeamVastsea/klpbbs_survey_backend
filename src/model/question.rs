@@ -30,8 +30,11 @@ pub struct ConditionInner {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum ConditionType {
+    #[serde(rename = "and")]
     And,
+    #[serde(rename = "or")]
     Or,
+    #[serde(rename = "not")]
     Not,
 }
 

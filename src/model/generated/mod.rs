@@ -6,4 +6,5 @@ pub mod admin;
 pub mod answer;
 pub mod page;
 pub mod question;
+pub mod score;
 pub mod survey;

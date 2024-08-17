@@ -1,19 +1,24 @@
-use crate::model::question::QuestionType;
+use crate::model::question::{Condition, QuestionType};
 use crate::service::questions::save_question;
 use axum::Json;
-use sea_orm::JsonValue;
 use serde::Serialize;
+use crate::model::ValueWithTitle;
 
 pub async fn new_question(Json(question): Json<NewQuestionRequest>) -> String {
-    let id = save_question(question.content, question.r#type, question.values, question.condition, question.required, None).await;
+    let content = serde_json::to_value(question.content).unwrap();
+    let values = question.values.map(|values| 
+        values.iter().map(|v| serde_json::to_value(v).unwrap()).collect());
+    let condition = question.condition.map(|c| serde_json::to_string(&c).unwrap());
+    
+    let id = save_question(content, question.r#type, values, condition, question.required, None).await;
     id.to_string()
 }
 
 #[derive(serde::Deserialize, Serialize)]
 pub struct NewQuestionRequest {
-    pub content: JsonValue,
+    pub content: ValueWithTitle,
     pub r#type: QuestionType,
-    pub values: Option<Vec<JsonValue>>,
-    pub condition: Option<String>,
+    pub values: Option<Vec<ValueWithTitle>>,
+    pub condition: Option<Vec<Condition>>,
     pub required: bool,
 }

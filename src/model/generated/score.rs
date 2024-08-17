@@ -3,12 +3,15 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "admin")]
+#[sea_orm(table_name = "score")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub id: i64,
-    pub username: String,
-    pub disabled: bool,
+    #[sea_orm(primary_key)]
+    pub id: i32,
+    pub user: i64,
+    pub judge: i64,
+    pub survey: i32,
+    pub answer: i32,
+    pub scores: Vec<Json>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

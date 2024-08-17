@@ -9,21 +9,20 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Answer::Table)
+                    .table(Score::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(Answer::Id)
+                        ColumnDef::new(Score::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Answer::Survey).integer().not_null())
-                    .col(ColumnDef::new(Answer::User).big_unsigned().not_null())
-                    .col(ColumnDef::new(Answer::Answers).json().not_null())
-                    .col(ColumnDef::new(Answer::Score).integer().null())
-                    .col(ColumnDef::new(Answer::CreateTime).timestamp().not_null().default(Expr::current_timestamp()))
-                    .col(ColumnDef::new(Answer::Completed).boolean().not_null().default(false))
+                    .col(ColumnDef::new(Score::User).big_unsigned().not_null())
+                    .col(ColumnDef::new(Score::Judge).big_unsigned().not_null())
+                    .col(ColumnDef::new(Score::Survey).integer().not_null())
+                    .col(ColumnDef::new(Score::Answer).integer().not_null())
+                    .col(ColumnDef::new(Score::Scores).array(ColumnType::Json).not_null())
                     .to_owned(),
             )
             .await
@@ -31,19 +30,18 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Answer::Table).to_owned())
+            .drop_table(Table::drop().table(Score::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum Answer {
+enum Score {
     Table,
     Id,
-    Survey,
     User,
-    Answers,
-    Score,
-    CreateTime,
-    Completed
+    Judge,
+    Survey,
+    Answer,
+    Scores,
 }
