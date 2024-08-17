@@ -7,13 +7,14 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub survey: String,
+    pub survey: i32,
     pub user: i64,
     pub judge: Option<i64>,
     pub answers: Json,
     pub score: Option<i32>,
     pub create_time: DateTime,
     pub judged_time: Option<DateTime>,
+    pub completed: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

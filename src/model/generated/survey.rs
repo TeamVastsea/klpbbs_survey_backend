@@ -12,12 +12,13 @@ pub struct Model {
     pub budge: String,
     pub description: String,
     pub image: String,
-    pub page: Uuid,
+    pub page: String,
     pub start_date: DateTime,
     pub end_date: DateTime,
     pub allow_submit: bool,
     pub allow_view: bool,
     pub allow_judge: bool,
+    pub allow_re_submit: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

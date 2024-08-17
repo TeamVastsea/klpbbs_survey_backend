@@ -18,13 +18,14 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Answer::Survey).string().not_null())
+                    .col(ColumnDef::new(Answer::Survey).integer().not_null())
                     .col(ColumnDef::new(Answer::User).big_unsigned().not_null())
                     .col(ColumnDef::new(Answer::Judge).big_unsigned().null())
                     .col(ColumnDef::new(Answer::Answers).json().not_null())
                     .col(ColumnDef::new(Answer::Score).integer().null())
                     .col(ColumnDef::new(Answer::CreateTime).timestamp().not_null().default(Expr::current_timestamp()))
                     .col(ColumnDef::new(Answer::JudgedTime).timestamp().null())
+                    .col(ColumnDef::new(Answer::Completed).boolean().not_null().default(false))
                     .to_owned(),
             )
             .await
@@ -48,4 +49,5 @@ enum Answer {
     Score,
     CreateTime,
     JudgedTime,
+    Completed
 }

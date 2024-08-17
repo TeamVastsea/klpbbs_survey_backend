@@ -6,6 +6,7 @@ pub enum ErrorMessage {
     InvalidToken,
     TokenNotActivated,
     PermissionDenied,
+    TooManySubmit,
     NotFound,
     Other(String),
 }
@@ -36,6 +37,9 @@ impl IntoResponse for ErrorMessage {
             }
             ErrorMessage::Other(text) => {
                 builder.status(StatusCode::INTERNAL_SERVER_ERROR).body(text.into()).unwrap()
+            }
+            ErrorMessage::TooManySubmit => {
+                builder.status(StatusCode::TOO_MANY_REQUESTS).body("Too many submit.".into()).unwrap()
             }
         }
     }
