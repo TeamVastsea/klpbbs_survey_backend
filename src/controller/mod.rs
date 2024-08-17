@@ -4,6 +4,7 @@ pub mod oauth;
 mod question;
 mod survey;
 mod answer;
+mod judge;
 
 use axum::{Router};
 use axum::routing::get;

@@ -10,9 +10,11 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use sea_orm::ActiveValue::Set;
 use serde_json::json;
+use crate::service::questions::{get_page_by_id, get_question_by_id};
 
 pub async fn submit_answer(TokenInfo(user): TokenInfo, Json(request): Json<SubmitRequest>) -> Result<String, ErrorMessage> {
-    if request.complete.unwrap_or(false) { 
+    let complete = request.complete.unwrap_or(false);
+    if complete { 
         let survey = Survey::find()
             .filter(survey::Column::Id.eq(request.survey))
             .filter(survey::Column::AllowSubmit.eq(true))
@@ -24,8 +26,6 @@ pub async fn submit_answer(TokenInfo(user): TokenInfo, Json(request): Json<Submi
             .one(&*DATABASE).await.unwrap()
             .ok_or(ErrorMessage::NotFound)?;
         
-        println!("{:?}", survey);
-        
         if !survey.allow_re_submit && Answer::find()
                 .filter(answer::Column::User.eq(user.uid.parse::<i64>().unwrap()))
                 .filter(answer::Column::Survey.eq(request.survey))
@@ -36,8 +36,6 @@ pub async fn submit_answer(TokenInfo(user): TokenInfo, Json(request): Json<Submi
                 .await.unwrap().is_some() {
             return Err(ErrorMessage::TooManySubmit);
         }
-        
-        return Ok("".to_string());
     }
     
     let mut new_answer = json!({});
@@ -70,6 +68,34 @@ pub async fn submit_answer(TokenInfo(user): TokenInfo, Json(request): Json<Submi
     for (key, value) in request.content {
         if !value.is_empty() { 
             new_answer[key] = value.into();
+        }
+    }
+    
+    let answer_object = new_answer.as_object().ok_or(ErrorMessage::InvalidField)?;
+    
+    if complete {
+        let survey = Survey::find()
+            .filter(survey::Column::Id.eq(request.survey))
+            .one(&*DATABASE)
+            .await.unwrap()
+            .ok_or(ErrorMessage::NotFound)?;
+
+        let mut page = get_page_by_id(&survey.page).await;
+
+        while let Some(ref page_info) = page {
+            for question in &page_info.content {
+                let question = get_question_by_id(question).await.unwrap();
+                
+                if question.required && !answer_object.contains_key(&question.id) {
+                    return Err(ErrorMessage::MissingField);
+                }
+            }
+            
+            page = if let Some(ref next) = page_info.next {
+                get_page_by_id(next).await
+            } else {
+                None
+            };
         }
     }
     

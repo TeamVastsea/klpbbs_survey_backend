@@ -7,7 +7,7 @@ use tracing::info;
 pub async fn get_question(Path(question): Path<String>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     info!("User {} is trying to get question {}", user.uid, question);
     
-    let Some(page) = get_question_by_id(question).await
+    let Some(page) = get_question_by_id(&question).await
     else {
         return Err(ErrorMessage::NotFound);
     };

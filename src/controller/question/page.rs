@@ -8,7 +8,7 @@ use tracing::info;
 pub async fn get_page(Query(query): Query<GetPageQuery>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     info!("User {} is trying to get page {}", user.uid, query.page);
     
-    let Some(page) = get_page_by_id(query.page).await
+    let Some(page) = get_page_by_id(&query.page).await
         else { 
             return Err(ErrorMessage::NotFound);
         };

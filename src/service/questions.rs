@@ -14,30 +14,30 @@ lazy_static! {
     static ref PAHE_CACHE: Cache<String, page::Model> = Cache::new(10000);
 }
 
-pub async fn get_question_by_id(id: String) -> Option<question::Model> {
-    if let Some(a) = QUESTIO_CACHE.get(&id).await {
+pub async fn get_question_by_id(id: &str) -> Option<question::Model> {
+    if let Some(a) = QUESTIO_CACHE.get(id).await {
         return Some(a);
     }
     
     let question = Question::find()
-        .filter(question::Column::Id.eq(&id))
+        .filter(question::Column::Id.eq(id))
         .one(&*crate::DATABASE).await.unwrap()?;
     
-    QUESTIO_CACHE.insert(id, question.clone()).await;
+    QUESTIO_CACHE.insert(id.to_string(), question.clone()).await;
 
     Some(question)
 }
 
-pub async fn get_page_by_id(id: String) -> Option<page::Model> {
-    if let Some(a) = PAHE_CACHE.get(&id).await {
+pub async fn get_page_by_id(id: &str) -> Option<page::Model> {
+    if let Some(a) = PAHE_CACHE.get(id).await {
         return Some(a);
     }
     
     let page = Page::find()
-        .filter(page::Column::Id.eq(&id))
+        .filter(page::Column::Id.eq(id))
         .one(&*crate::DATABASE).await.unwrap()?;
 
-    PAHE_CACHE.insert(id, page.clone()).await;
+    PAHE_CACHE.insert(id.to_string(), page.clone()).await;
 
     Some(page)
 }

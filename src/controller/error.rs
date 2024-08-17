@@ -9,6 +9,8 @@ pub enum ErrorMessage {
     TooManySubmit,
     NotFound,
     Other(String),
+    InvalidField,
+    MissingField,
 }
 
 impl IntoResponse for ErrorMessage {
@@ -40,6 +42,12 @@ impl IntoResponse for ErrorMessage {
             }
             ErrorMessage::TooManySubmit => {
                 builder.status(StatusCode::TOO_MANY_REQUESTS).body("Too many submit.".into()).unwrap()
+            }
+            ErrorMessage::InvalidField => {
+                builder.status(StatusCode::BAD_REQUEST).body("Invalid field.".into()).unwrap()
+            }
+            ErrorMessage::MissingField => {
+                builder.status(StatusCode::BAD_REQUEST).body("Missing field.".into()).unwrap()
             }
         }
     }
