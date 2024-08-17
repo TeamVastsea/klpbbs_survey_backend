@@ -15,6 +15,9 @@ pub struct Model {
     pub page: Uuid,
     pub start_date: DateTime,
     pub end_date: DateTime,
+    pub allow_submit: bool,
+    pub allow_view: bool,
+    pub allow_judge: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

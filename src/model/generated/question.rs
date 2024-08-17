@@ -13,6 +13,7 @@ pub struct Model {
     pub values: Option<Vec<Json>>,
     #[sea_orm(column_type = "Text", nullable)]
     pub condition: Option<String>,
+    pub required: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -4,6 +4,8 @@ mod m20240811_144718_create_question_table;
 mod m20240811_145111_create_page_table;
 mod m20240814_153908_create_survey_table;
 mod m20240816_073728_create_answer_table;
+mod m20240817_030711_add_required_to_question;
+mod m20240817_035143_add_control_to_survey;
 
 pub struct Migrator;
 
@@ -15,6 +17,8 @@ impl MigratorTrait for Migrator {
             Box::new(m20240811_145111_create_page_table::Migration),
             Box::new(m20240814_153908_create_survey_table::Migration),
             Box::new(m20240816_073728_create_answer_table::Migration),
+            Box::new(m20240817_030711_add_required_to_question::Migration),
+            Box::new(m20240817_035143_add_control_to_survey::Migration),
         ]
     }
 }

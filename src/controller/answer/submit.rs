@@ -54,6 +54,7 @@ pub async fn submit_answer(TokenInfo(user): TokenInfo, Json(request): Json<Submi
 #[derive(Deserialize)]
 pub struct SubmitRequest {
     id: Option<i32>,
+    complete: Option<bool>,
     survey: String,
     content: HashMap<String, String>,
 }
