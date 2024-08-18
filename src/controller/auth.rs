@@ -1,5 +1,4 @@
 use axum::http::HeaderMap;
-use tracing::debug;
 use crate::controller::error::ErrorMessage;
 
 pub async fn get_token() -> String {

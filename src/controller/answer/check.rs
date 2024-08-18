@@ -4,7 +4,7 @@ use crate::model::generated::prelude::Answer;
 use crate::service::token::TokenInfo;
 use crate::DATABASE;
 use axum::extract::Query;
-use sea_orm::{query, ColumnTrait};
+use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, QueryFilter};
 use serde::Deserialize;
 use serde_json::json;
