@@ -23,7 +23,7 @@ async fn get_oauth_login(token: String) -> Result<UserData, String> {
         .await
         .map_err(|e| e.to_string())?;
     
-    let user: User = serde_json::from_str(&res).map_err(|e| e.to_string())?;
+    let user: User = serde_json::from_str(&res).map_err(|_| res)?;
     Ok(user.data)
 }
 
