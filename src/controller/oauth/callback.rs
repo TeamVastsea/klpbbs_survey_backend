@@ -5,9 +5,11 @@ use futures::TryFutureExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) {
-    let data = get_oauth_login(query.token).await.unwrap();
+pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) -> Result<(), String> {
+    let data = get_oauth_login(query.token).await?;
     activate_token(&query.state, data).await;
+    
+    Ok(())
 }
 
 async fn get_oauth_login(token: String) -> Result<UserData, String> {
