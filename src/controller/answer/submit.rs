@@ -56,11 +56,9 @@ pub async fn submit_answer(TokenInfo(user): TokenInfo, Json(request): Json<Submi
             id: NotSet,
             survey: Set(request.survey),
             user: Set(user.uid.parse::<i64>().unwrap()),
-            judge: NotSet,
             answers: NotSet,
             score: NotSet,
             create_time: NotSet,
-            judged_time: NotSet,
             completed: NotSet,
         }
     };

@@ -10,7 +10,8 @@ pub async fn new_question(Json(question): Json<NewQuestionRequest>) -> String {
         values.iter().map(|v| serde_json::to_value(v).unwrap()).collect());
     let condition = question.condition.map(|c| serde_json::to_string(&c).unwrap());
     
-    let id = save_question(content, question.r#type, values, condition, question.required, None).await;
+    let id = save_question(content, question.r#type, values, condition, question.required,
+                           None, question.all_points, question.sub_points, question.answer).await;
     id.to_string()
 }
 
@@ -20,7 +21,8 @@ pub async fn modify_question(Json(question): Json<ModifyQuestionRequest>) -> Str
         values.iter().map(|v| serde_json::to_value(v).unwrap()).collect());
     let condition = question.condition.map(|c| serde_json::to_string(&c).unwrap());
     
-    let id = save_question(content, question.r#type, values, condition, question.required, Some(question.id.clone())).await;
+    let id = save_question(content, question.r#type, values, condition, question.required, Some(question.id.clone()), 
+                           question.all_points, question.sub_points, question.answer).await;
     id.to_string()
 }
 
@@ -31,6 +33,9 @@ pub struct NewQuestionRequest {
     pub values: Option<Vec<ValueWithTitle>>,
     pub condition: Option<Vec<Condition>>,
     pub required: bool,
+    pub all_points: i32,
+    pub sub_points: Option<i32>,
+    pub answer: Option<String>,
 }
 
 #[derive(serde::Deserialize, Serialize)]
@@ -41,4 +46,7 @@ pub struct ModifyQuestionRequest {
     pub values: Option<Vec<ValueWithTitle>>,
     pub condition: Option<Vec<Condition>>,
     pub required: bool,
+    pub all_points: i32,
+    pub sub_points: Option<i32>,
+    pub answer: Option<String>,
 }

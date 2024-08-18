@@ -14,6 +14,9 @@ pub struct Model {
     #[sea_orm(column_type = "Text", nullable)]
     pub condition: Option<String>,
     pub required: bool,
+    pub answer: Option<String>,
+    pub all_points: i32,
+    pub sub_points: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
