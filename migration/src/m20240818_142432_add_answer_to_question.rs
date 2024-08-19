@@ -18,7 +18,7 @@ impl MigrationTrait for Migration {
                     .add_column_if_not_exists(
                         ColumnDef::new(Question::AllPoints)
                             .unsigned()
-                            .not_null()
+                            .null()
                             .default(2)
                     )
                     .add_column_if_not_exists(

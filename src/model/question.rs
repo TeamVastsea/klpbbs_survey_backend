@@ -95,7 +95,7 @@ impl TryFrom<Model> for Question {
             serde_json::from_str(&condition).unwrap());
         let answer = if let Some(answer) = value.answer {
             Some(Answer {
-                all_points: value.all_points,
+                all_points: value.all_points.ok_or("Missing all_points")?,
                 sub_points: value.sub_points,
                 answer,
             })

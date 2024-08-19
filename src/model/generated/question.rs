@@ -17,7 +17,7 @@ pub struct Model {
     #[serde(skip_serializing)]
     pub answer: Option<String>,
     #[serde(skip_serializing)]
-    pub all_points: i32,
+    pub all_points: Option<i32>,
     #[serde(skip_serializing)]
     pub sub_points: Option<i32>,
 }

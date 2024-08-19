@@ -48,9 +48,7 @@ pub async fn save_question(content: JsonValue,
                            condition: Option<String>,
                            required: bool,
                            id: Option<String>,
-                           all_points: i32, 
-                           sub_points: Option<i32>,
-                           answer: Option<String>) -> String {
+                           answer: Option<crate::model::question::Answer>) -> String {
     let id_generate = id.clone().unwrap_or(Uuid::new_v4().to_string());
 
     let question = question::ActiveModel {
@@ -60,9 +58,9 @@ pub async fn save_question(content: JsonValue,
         values: Set(values),
         condition: Set(condition),
         required: Set(required),
-        all_points: Set(all_points),
-        sub_points: Set(sub_points),
-        answer: Set(answer),
+        all_points: Set(answer.as_ref().map(|a| a.all_points)),
+        sub_points: Set(answer.as_ref().and_then(|a| a.sub_points)),
+        answer: Set(answer.map(|a| a.answer)),
     };
 
     let after = if id.clone().is_some() {
