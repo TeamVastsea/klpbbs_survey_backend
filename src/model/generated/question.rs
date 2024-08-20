@@ -14,11 +14,11 @@ pub struct Model {
     #[sea_orm(column_type = "Text", nullable)]
     pub condition: Option<String>,
     pub required: bool,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub answer: Option<String>,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub all_points: Option<i32>,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sub_points: Option<i32>,
 }
 
