@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 pub mod generated;
-mod admin;
 pub mod question;
 pub mod page;
 

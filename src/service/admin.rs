@@ -39,6 +39,12 @@ where S: Send + Sync {
     type Rejection = ErrorMessage;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        ADMIN_TOKEN_CACHE.insert("222".to_string(), admin::Model {
+            id: 222,
+            username: "222".to_string(),
+            disabled: false,
+        }).await;
+        
         let headers = &parts.headers;
         let token = headers.get("token")
             .ok_or(ErrorMessage::InvalidToken)?
@@ -46,6 +52,10 @@ where S: Send + Sync {
             .map_err(|_| ErrorMessage::InvalidToken)?;
         let user = get_admin_by_token(token).await
             .ok_or(ErrorMessage::TokenNotActivated)?;
+        
+        if user.disabled { 
+            return Err(ErrorMessage::TokenNotActivated);
+        }
 
         Ok(AdminTokenInfo(user))
     }

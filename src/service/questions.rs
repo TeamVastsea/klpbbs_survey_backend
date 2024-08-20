@@ -3,6 +3,7 @@ use lazy_static::lazy_static;
 use moka::future::Cache;
 use sea_orm::{ActiveModelTrait, EntityTrait, JsonValue, QueryFilter};
 use sea_orm::ActiveValue::Set;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::DATABASE;
 use crate::model::generated::{page, question};
@@ -11,7 +12,7 @@ use crate::model::question::QuestionType;
 
 lazy_static! {
     static ref QUESTIO_CACHE: Cache<String, question::Model> = Cache::new(10000);
-    static ref PAHE_CACHE: Cache<String, page::Model> = Cache::new(10000);
+    static ref PAGE_CACHE: Cache<String, page::Model> = Cache::new(10000);
 }
 
 pub async fn get_question_by_id(id: &str) -> Option<question::Model> {
@@ -29,7 +30,7 @@ pub async fn get_question_by_id(id: &str) -> Option<question::Model> {
 }
 
 pub async fn get_page_by_id(id: &str) -> Option<page::Model> {
-    if let Some(a) = PAHE_CACHE.get(id).await {
+    if let Some(a) = PAGE_CACHE.get(id).await {
         return Some(a);
     }
 
@@ -37,7 +38,7 @@ pub async fn get_page_by_id(id: &str) -> Option<page::Model> {
         .filter(page::Column::Id.eq(id))
         .one(&*crate::DATABASE).await.unwrap()?;
 
-    PAHE_CACHE.insert(id.to_string(), page.clone()).await;
+    PAGE_CACHE.insert(id.to_string(), page.clone()).await;
 
     Some(page)
 }
@@ -90,7 +91,29 @@ pub async fn save_page(title: String, content: Vec<String>, next: Option<String>
         page.insert(&*DATABASE).await.unwrap()
     };
 
-    PAHE_CACHE.insert(id_generate.clone(), after.clone()).await;
+    PAGE_CACHE.insert(id_generate.clone(), after.clone()).await;
 
     id_generate
+}
+
+pub fn refresh_cache(refresh_type: CacheType) {
+    match refresh_type {
+        CacheType::Question => {
+            QUESTIO_CACHE.invalidate_all();
+        }
+        CacheType::Page => {
+            PAGE_CACHE.invalidate_all();
+        }
+        CacheType::Both => {
+            QUESTIO_CACHE.invalidate_all();
+            PAGE_CACHE.invalidate_all();
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum CacheType {
+    Question,
+    Page,
+    Both
 }

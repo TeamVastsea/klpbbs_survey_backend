@@ -2,6 +2,9 @@ use crate::model::generated::question::Model;
 use crate::model::ValueWithTitle;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use sea_orm::JsonValue;
+use serde_json::Value;
+use tracing::log::debug;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -27,7 +30,7 @@ pub struct Condition {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ConditionInner {
     pub id: Uuid,
-    pub value: String,
+    pub value: JsonValue,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -43,8 +46,8 @@ pub enum ConditionType {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum QuestionType {
     Text = 1,
-    MultipleChoice = 2,
-    SingleChoice = 3,
+    SingleChoice = 2,
+    MultipleChoice = 3,
     File = 4,
 }
 
@@ -76,8 +79,8 @@ impl TryFrom<u8> for QuestionType {
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
             1 => Ok(QuestionType::Text),
-            2 => Ok(QuestionType::MultipleChoice),
-            3 => Ok(QuestionType::SingleChoice),
+            2 => Ok(QuestionType::SingleChoice),
+            3 => Ok(QuestionType::MultipleChoice),
             4 => Ok(QuestionType::File),
             _ => Err("Invalid value for QuestionType")
         }
@@ -91,8 +94,8 @@ impl TryFrom<Model> for Question {
         let content: ValueWithTitle = serde_json::from_value(value.content).unwrap();
         let values: Option<Vec<ValueWithTitle>> = value.values.map(|values|
             values.iter().map(|v| serde_json::from_value(v.clone()).unwrap()).collect());
-        let condition: Option<Vec<Condition>> = value.condition.map(|condition|
-            serde_json::from_str(&condition).unwrap());
+        let condition: Option<Vec<Condition>> = value.condition.map(|condition| {
+            serde_json::from_str(&condition).unwrap()});
         let answer = if let Some(answer) = value.answer {
             Some(Answer {
                 all_points: value.all_points.ok_or("Missing all_points")?,
@@ -110,6 +113,30 @@ impl TryFrom<Model> for Question {
             values,
             condition,
             required: value.required,
+            answer,
+        })
+    }
+}
+
+impl TryFrom<Question> for Model {
+    type Error = String;
+
+    fn try_from(value: Question) -> Result<Self, Self::Error> {
+        let content = serde_json::to_value(value.content).unwrap();
+        let values = value.values.map(|values|
+            values.iter().map(|v| serde_json::to_value(v).unwrap()).collect());
+        let condition = value.condition.map(|c| serde_json::to_string(&c).unwrap());
+        let answer = value.answer.as_ref().map(|a| a.answer.clone());
+
+        Ok(Model {
+            id: value.id.to_string(),
+            content,
+            r#type: value.r#type as i32,
+            values,
+            condition,
+            required: value.required,
+            all_points: value.answer.as_ref().map(|a| a.all_points),
+            sub_points: value.answer.and_then(|a| a.sub_points),
             answer,
         })
     }
