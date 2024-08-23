@@ -3,6 +3,7 @@ name = "klpbbs_survey_backend"
 description = ""
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [workspace]
 members = [".", "migration"]
@@ -32,6 +33,7 @@ moka = { version = "0.12.8", features = ["future"] }
 rand = "0.8.5"
 reqwest = "0.12.5"
 uuid = { version = "1.9.1", features = ["v4"] }
+shadow-rs = "0.33.0"
 
 #database
 migration = {path = "migration"}
@@ -41,4 +43,4 @@ chrono = "0.4.38"
 
 
 [build-dependencies]
-shadow-rs = "0.30.0"
+shadow-rs = "0.33.0"
