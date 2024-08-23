@@ -12,12 +12,12 @@ use serde_json::json;
 pub async fn check_record(Query(query): Query<CheckQuery>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     let answers = if query.only_unfinished {
         Answer::find()
-        .filter(answer::Column::User.eq(user.uid.parse::<u64>().unwrap()))
-        .filter(answer::Column::Survey.eq(query.survey))
-        .filter(answer::Column::Completed.eq(false))
-        .all(&*DATABASE)
-        .await
-        .unwrap()
+            .filter(answer::Column::User.eq(user.uid.parse::<u64>().unwrap()))
+            .filter(answer::Column::Survey.eq(query.survey))
+            .filter(answer::Column::Completed.eq(false))
+            .all(&*DATABASE)
+            .await
+            .unwrap()
     } else { 
         Answer::find()
             .filter(answer::Column::User.eq(user.uid.parse::<u64>().unwrap()))

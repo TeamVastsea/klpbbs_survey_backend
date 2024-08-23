@@ -8,9 +8,10 @@ pub enum ErrorMessage {
     PermissionDenied,
     TooManySubmit,
     NotFound,
-    Other(String),
     InvalidField,
     MissingField,
+    Other(String),
+    DatabaseError(String),
 }
 
 impl IntoResponse for ErrorMessage {
@@ -48,6 +49,9 @@ impl IntoResponse for ErrorMessage {
             }
             ErrorMessage::MissingField => {
                 builder.status(StatusCode::BAD_REQUEST).body("Missing field.".into()).unwrap()
+            }
+            ErrorMessage::DatabaseError(text) => {
+                builder.status(StatusCode::INTERNAL_SERVER_ERROR).body(format!("Database error: {}", text).into()).unwrap()
             }
         }
     }
