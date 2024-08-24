@@ -1,5 +1,5 @@
-use axum::http::HeaderMap;
 use crate::controller::error::ErrorMessage;
+use axum::http::HeaderMap;
 
 pub async fn get_token() -> String {
     crate::service::token::create_token().await

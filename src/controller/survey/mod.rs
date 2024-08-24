@@ -1,8 +1,8 @@
 mod query;
 mod modify;
 
-use axum::Router;
 use axum::routing::get;
+use axum::Router;
 
 pub fn get_survey_routes() -> Router {
     Router::new()

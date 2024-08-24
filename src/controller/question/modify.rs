@@ -1,8 +1,8 @@
 use crate::model::question::{Answer, Condition, QuestionType};
+use crate::model::ValueWithTitle;
 use crate::service::questions::save_question;
 use axum::Json;
 use serde::Serialize;
-use crate::model::ValueWithTitle;
 
 pub async fn new_question(Json(question): Json<NewQuestionRequest>) -> String {
     let content = serde_json::to_value(question.content).unwrap();

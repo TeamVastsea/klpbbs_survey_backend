@@ -1,8 +1,8 @@
-use axum::extract::{Path, Query};
-use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
-use crate::DATABASE;
 use crate::model::generated::prelude::Survey;
 use crate::model::generated::survey;
+use crate::DATABASE;
+use axum::extract::{Path, Query};
+use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
 
 pub async fn query_surveys(Query(query): Query<QueryParams>) -> String {
     let size = query.size.unwrap_or(10);

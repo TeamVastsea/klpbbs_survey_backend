@@ -1,12 +1,12 @@
-use axum::extract::Query;
-use sea_orm::{EntityTrait, PaginatorTrait, QueryFilter};
-use tracing::info;
 use crate::controller::error::ErrorMessage;
-use crate::DATABASE;
 use crate::model::generated::prelude::Answer;
 use crate::service::admin::AdminTokenInfo;
+use crate::DATABASE;
+use axum::extract::Query;
 use sea_orm::ColumnTrait;
+use sea_orm::{EntityTrait, PaginatorTrait, QueryFilter};
 use serde::Deserialize;
+use tracing::info;
 
 pub async fn search_answer(AdminTokenInfo(admin): AdminTokenInfo, Query(request): Query<SearchAnswerQuery>) -> Result<String, ErrorMessage> {
     info!("Admin {} search answer", admin.id);

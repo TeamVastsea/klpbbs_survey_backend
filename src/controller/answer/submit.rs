@@ -1,16 +1,16 @@
 use crate::controller::error::ErrorMessage;
-use crate::model::generated::{answer, survey};
 use crate::model::generated::prelude::{Answer, Survey};
+use crate::model::generated::{answer, survey};
+use crate::service::questions::{get_page_by_id, get_question_by_id};
 use crate::service::token::TokenInfo;
 use crate::DATABASE;
 use axum::Json;
+use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait, FromQueryResult, NotSet, QuerySelect, SelectColumns};
 use sea_orm::{EntityTrait, IntoActiveModel, QueryFilter};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use sea_orm::ActiveValue::Set;
 use serde_json::json;
-use crate::service::questions::{get_page_by_id, get_question_by_id};
+use std::collections::HashMap;
 
 pub async fn submit_answer(TokenInfo(user): TokenInfo, Json(request): Json<SubmitRequest>) -> Result<String, ErrorMessage> {
     let complete = request.complete.unwrap_or(false);

@@ -1,13 +1,9 @@
-use crate::model::question::Answer;
-use crate::model::question::{Condition, ConditionInner, ConditionType, Question, QuestionType};
-use std::collections::HashMap;
-use std::str::FromStr;
-use futures::executor::block_on;
+use crate::model::question::{ConditionType, Question, QuestionType};
+use crate::service::questions::get_question_by_id;
 use sea_orm::JsonValue;
+use std::collections::HashMap;
 use tracing::debug;
 use uuid::Uuid;
-use crate::model::ValueWithTitle;
-use crate::service::questions::{get_question_by_id, save_question};
 
 pub async fn judge_subjectives(questions: &Vec<Question>, answer: &HashMap<String, String>) -> (i32, i32, HashMap<Uuid, i32>) {
     let mut score = HashMap::new();
@@ -146,11 +142,9 @@ async fn whether_invisible(question: &Question, answer: &HashMap<String, String>
                 }
             }
             ConditionType::Or => {
-                let mut inner_flag = false;
                 for cond in &c.conditions {
                     if let Some(ans) = answer.get(cond.id.to_string().as_str()) {
                         if !is_equal(get_question_by_id(&cond.id.to_string()).await.unwrap().r#type, ans, cond.value.clone()) {
-                            inner_flag = true;
                             break;
                         }
                     }

@@ -8,9 +8,9 @@ mod judge;
 mod refresh;
 mod ping;
 
-use axum::{Router};
-use axum::routing::get;
 use crate::controller::auth::{get_token, get_user};
+use axum::routing::get;
+use axum::Router;
 
 pub fn all_routers() -> Router {
     Router::new()

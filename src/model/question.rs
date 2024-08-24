@@ -3,8 +3,6 @@ use crate::model::ValueWithTitle;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use sea_orm::JsonValue;
-use serde_json::Value;
-use tracing::log::debug;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

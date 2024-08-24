@@ -1,12 +1,12 @@
-use std::time::Duration;
+use crate::controller::error::ErrorMessage;
+use crate::controller::oauth::callback::UserData;
 use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use lazy_static::lazy_static;
 use moka::future::Cache;
 use rand::Rng;
-use crate::controller::error::ErrorMessage;
-use crate::controller::oauth::callback::UserData;
+use std::time::Duration;
 
 lazy_static! {
     static ref TOKEN_CACHE: Cache<String, Option<UserData>> = Cache::builder()

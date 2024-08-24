@@ -1,12 +1,12 @@
 use crate::controller::error::ErrorMessage;
 use crate::model::generated::admin;
 use crate::model::generated::prelude::Admin;
+use crate::service::token::get_user_id;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use migration::async_trait::async_trait;
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, QueryFilter};
-use crate::service::token::get_user_id;
 
 pub async fn get_admin_by_id(id: i32) -> Option<admin::Model> {
     Admin::find()

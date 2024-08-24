@@ -1,7 +1,6 @@
 use crate::service::token::activate_token;
 use crate::OAUTH_CONFIG;
 use axum::extract::Query;
-use futures::TryFutureExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 

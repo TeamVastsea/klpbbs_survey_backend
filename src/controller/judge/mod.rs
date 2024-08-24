@@ -1,7 +1,7 @@
 mod start;
 
-use axum::Router;
 use axum::routing::get;
+use axum::Router;
 
 pub fn get_judge_routers() -> Router {
     Router::new()

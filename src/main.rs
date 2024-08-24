@@ -3,7 +3,8 @@ use axum::http::HeaderValue;
 use axum::Router;
 use axum_server::tls_rustls::RustlsConfig;
 use lazy_static::lazy_static;
-use sea_orm::{ActiveModelTrait, ConnectOptions, Database, DatabaseConnection};
+use migration::{Migrator, MigratorTrait};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use tower_http::catch_panic::CatchPanicLayer;
 use tower_http::classify::StatusInRangeAsFailures;
 use tower_http::cors::CorsLayer;
@@ -16,7 +17,6 @@ use tracing_subscriber::fmt::time::ChronoLocal;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter, Registry};
-use migration::{Migrator, MigratorTrait};
 
 use crate::config::core::CoreConfig;
 use crate::config::get_config;

@@ -3,8 +3,8 @@ mod submit;
 mod get;
 mod search;
 
-use axum::Router;
 use axum::routing::get;
+use axum::Router;
 
 pub fn get_answer_routes() -> Router {
     Router::new()
