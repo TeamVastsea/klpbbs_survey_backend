@@ -1,7 +1,10 @@
-use crate::model::question::{ConditionType, Question, QuestionType};
+use crate::model::question::{Answer, ConditionType, Question, QuestionType};
+use crate::model::ValueWithTitle;
 use crate::service::questions::get_question_by_id;
+use futures::executor::block_on;
 use sea_orm::JsonValue;
 use std::collections::HashMap;
+use std::str::FromStr;
 use tracing::debug;
 use uuid::Uuid;
 
@@ -253,11 +256,12 @@ fn test_judge() {
     answer.insert("d4135fda-00f3-4dd0-a19b-52150322912f".to_string(), "0".to_string());
     answer.insert("4135f52b-39a1-4aca-a19c-498ccb879725".to_string(), "[\"0\",\"1\"]".to_string());
 
-    let (full, scores) = block_on(judge_subjectives(&questions, &answer));
+    let (full, user, scores) = block_on(judge_subjectives(&questions, &answer));
 
-    println!("{} {:?}", full, scores);
+    println!("{} {user} {:?}", full, scores);
 
     assert_eq!(full, 15);
+    assert_eq!(user, 13);
     assert_eq!(scores.get(&Uuid::from_str("d4135fda-00f3-4dd0-a19b-52150322912f").unwrap()), Some(&10));
     assert_eq!(scores.get(&Uuid::from_str("4135f52b-39a1-4aca-a19c-498ccb879725").unwrap()), Some(&3));
 }
