@@ -9,9 +9,9 @@ pub struct Model {
     pub id: i32,
     pub user: i64,
     pub judge: i64,
-    pub survey: i32,
-    pub answer: i32,
-    pub scores: Vec<Json>,
+    pub scores: Json,
+    pub user_score: i32,
+    pub full_score: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

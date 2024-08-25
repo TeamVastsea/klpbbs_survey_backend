@@ -15,14 +15,13 @@ impl MigrationTrait for Migration {
                         ColumnDef::new(Score::Id)
                             .integer()
                             .not_null()
-                            .auto_increment()
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Score::User).big_unsigned().not_null())
                     .col(ColumnDef::new(Score::Judge).big_unsigned().not_null())
-                    .col(ColumnDef::new(Score::Survey).integer().not_null())
-                    .col(ColumnDef::new(Score::Answer).integer().not_null())
-                    .col(ColumnDef::new(Score::Scores).array(ColumnType::Json).not_null())
+                    .col(ColumnDef::new(Score::Scores).json().not_null())
+                    .col(ColumnDef::new(Score::UserScore).integer().not_null())
+                    .col(ColumnDef::new(Score::FullScore).integer().not_null())
                     .to_owned(),
             )
             .await
@@ -42,6 +41,7 @@ enum Score {
     User,
     Judge,
     Survey,
-    Answer,
     Scores,
+    UserScore,
+    FullScore,
 }

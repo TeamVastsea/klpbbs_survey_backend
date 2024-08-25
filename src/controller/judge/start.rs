@@ -12,38 +12,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::info;
 use uuid::Uuid;
+use crate::model::judge::{get_judge_result};
 
 pub async fn auto_judge(Query(query): Query<JudgeRequest>, AdminTokenInfo(admin): AdminTokenInfo) -> Result<String, ErrorMessage> {
-    info!("Admin {} is judging survey {}", admin.id, query.survey);
+    info!("Admin {} is judging answer {}", admin.id, query.answer);
     
-    let answer = Answer::find()
-        .filter(crate::model::generated::answer::Column::Id.eq(query.answer))
-        .one(&*DATABASE).await.unwrap().unwrap();
-    let answers = serde_json::from_value::<HashMap<String, String>>(answer.answers).unwrap();
-
-    let survey = Survey::find()
-        .filter(crate::model::generated::survey::Column::Id.eq(query.survey))
-        .one(&*DATABASE).await.unwrap().unwrap();
-
-    let mut questions = Vec::new();
-
-    let mut page = Some(survey.page);
-    while let Some(p) = page {
-        let p = p.clone();
-        let p = Page::find()
-            .filter(crate::model::generated::page::Column::Id.eq(p))
-            .one(&*DATABASE).await.unwrap().unwrap();
-
-        for question_id in p.content {
-            questions.push(get_question_by_id(&question_id).await.ok_or(ErrorMessage::NotFound)?);
-        }
-
-        page = p.next;
-    }
-
-    let questions = questions.iter().map(|q| q.clone().try_into().unwrap()).collect::<Vec<Question>>();
-
-    let (full, user, scores) = judge_subjectives(&questions, &answers).await;
+    let (scores, user, full) = get_judge_result(query.answer, admin.id).await?;
 
     let response = JudgeResponse {
         full,
@@ -56,7 +30,6 @@ pub async fn auto_judge(Query(query): Query<JudgeRequest>, AdminTokenInfo(admin)
 
 #[derive(Deserialize)]
 pub struct JudgeRequest {
-    pub survey: i32,
     pub answer: i32,
 }
 
