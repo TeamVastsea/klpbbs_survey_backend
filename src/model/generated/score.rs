@@ -9,6 +9,7 @@ pub struct Model {
     pub id: i32,
     pub user: i64,
     pub judge: i64,
+    pub judge_time: DateTime,
     pub scores: Json,
     pub user_score: i32,
     pub full_score: i32,

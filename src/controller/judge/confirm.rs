@@ -1,14 +1,15 @@
-use axum::extract::Query;
-use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel};
-use sea_orm::ActiveValue::Set;
-use tracing::info;
 use crate::controller::error::ErrorMessage;
 use crate::model::generated::prelude::{Answer, Score};
 use crate::model::generated::{answer, score};
 use crate::service::admin::AdminTokenInfo;
-use sea_orm::QueryFilter;
+use axum::extract::Query;
+use chrono::Utc;
+use sea_orm::ActiveValue::Set;
 use sea_orm::ColumnTrait;
+use sea_orm::QueryFilter;
+use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel};
 use serde::Deserialize;
+use tracing::info;
 
 pub async fn confirm_judge(Query(query): Query<ConfirmJudgeRequest>, AdminTokenInfo(admin): AdminTokenInfo) -> Result<(), ErrorMessage> {
     let score = Score::find()
@@ -31,6 +32,8 @@ pub async fn confirm_judge(Query(query): Query<ConfirmJudgeRequest>, AdminTokenI
 
     let mut score = score.into_active_model();
     score.completed = Set(true);
+    score.judge_time = Set(Utc::now().naive_utc());
+    score.judge = Set(admin.id);
     score.save(&*crate::DATABASE).await.unwrap();
 
     Ok(())

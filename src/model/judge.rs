@@ -5,6 +5,7 @@ use crate::model::question::Question;
 use crate::service::judge::judge_subjectives;
 use crate::service::questions::get_question_by_id;
 use crate::DATABASE;
+use chrono::Utc;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait, NotSet};
 use sea_orm::{EntityTrait, QueryFilter};
@@ -77,6 +78,7 @@ async fn save_judge_result(
         id: Set(answer_id),
         user: Set(user_id),
         judge: Set(judge_id),
+        judge_time: Set(Utc::now().naive_utc()),
         scores: Set(serde_json::to_value(judge_result).unwrap()),
         user_score: Set(user_score),
         full_score: Set(full_score),

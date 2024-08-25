@@ -19,6 +19,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Score::User).big_unsigned().not_null())
                     .col(ColumnDef::new(Score::Judge).big_unsigned().not_null())
+                    .col(ColumnDef::new(Score::JudgeTime).timestamp().default(Expr::current_timestamp()).not_null())
                     .col(ColumnDef::new(Score::Scores).json().not_null())
                     .col(ColumnDef::new(Score::UserScore).integer().not_null())
                     .col(ColumnDef::new(Score::FullScore).integer().not_null())
@@ -40,7 +41,7 @@ enum Score {
     Id,
     User,
     Judge,
-    Survey,
+    JudgeTime,
     Scores,
     UserScore,
     FullScore,
