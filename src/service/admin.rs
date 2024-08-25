@@ -30,13 +30,6 @@ where
             .ok_or(ErrorMessage::InvalidToken)?
             .to_str()
             .map_err(|_| ErrorMessage::InvalidToken)?;
-        if token == "222" {
-            return Ok(AdminTokenInfo(admin::Model {
-                id: 22,
-                username: "22".to_string(),
-                disabled: false,
-            }));
-        }
 
         let user = get_user_id(token).await
             .ok_or(ErrorMessage::TokenNotActivated)?;
