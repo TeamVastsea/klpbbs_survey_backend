@@ -10,9 +10,8 @@ use sea_orm::{ActiveModelTrait, ColumnTrait, NotSet};
 use sea_orm::{EntityTrait, QueryFilter};
 use std::collections::HashMap;
 use uuid::Uuid;
-use crate::model::question::ConditionType::Not;
 
-pub async fn get_judge_result(answer: i32, judge: i64) -> Result<(HashMap<Uuid, i32>, i32, i32), ErrorMessage> {
+pub async fn get_judge_result(answer: i32, judge: i64) -> Result<(HashMap<Uuid, i32>, i32, i32, bool), ErrorMessage> {
     let score = score::Entity::find()
         .filter(score::Column::Id.eq(answer))
         .one(&*DATABASE)
@@ -22,12 +21,12 @@ pub async fn get_judge_result(answer: i32, judge: i64) -> Result<(HashMap<Uuid, 
     if let Some(res) = score {
         let score: HashMap<Uuid, i32> = serde_json::from_value(res.scores).unwrap();
 
-        return Ok((score, res.user_score, res.full_score));
+        return Ok((score, res.user_score, res.full_score, res.completed));
     }
 
     let result = auto_judge(answer, judge).await?;
 
-    Ok(result)
+    Ok((result.0, result.1, result.2, false))
 }
 
 async fn auto_judge(answer: i32, judge: i64) -> Result<(HashMap<Uuid, i32>, i32, i32), ErrorMessage> {
