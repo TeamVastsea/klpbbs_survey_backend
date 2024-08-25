@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: CI/CD
 
 on:
   push:
@@ -32,9 +32,25 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/klpbbs-survey-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+  build_docker_ARC:
+    name: Build docker ARC
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Login to ACR
+        uses: aliyun/acr-login@v1
+        with:
+          login-server: https://registry.cn-guangzhou.aliyuncs.com
+          username: "${{ secrets.REGISTRY_USERNAME }}"
+          password: "${{ secrets.REGISTRY_PASSWORD }}"
+      - name: Build and push image
+        run: |
+          docker build -t registry.cn-guangzhou.aliyuncs.com/teamvastsea/klpbbs-survey-backend:latest .
+          docker push registry.cn-guangzhou.aliyuncs.com/teamvastsea/klpbbs-survey-backend:latest
   deploy:
     name: Deploy
-    needs: build_docker
+    needs: [build_docker, build_docker_ARC]
     runs-on: ubuntu-latest
     steps:
       - name: SSH To Host
