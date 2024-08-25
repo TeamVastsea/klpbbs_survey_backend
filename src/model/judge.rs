@@ -5,14 +5,15 @@ use crate::model::question::Question;
 use crate::service::judge::judge_subjectives;
 use crate::service::questions::get_question_by_id;
 use crate::DATABASE;
-use chrono::Utc;
+use chrono::{NaiveDateTime, Utc};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait, NotSet};
 use sea_orm::{EntityTrait, QueryFilter};
+use serde::Serialize;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-pub async fn get_judge_result(answer: i32, judge: i64) -> Result<(HashMap<Uuid, i32>, i32, i32, bool), ErrorMessage> {
+pub async fn get_judge_result(answer: i32, judge: i64) -> Result<JudgeResult, ErrorMessage> {
     let score = score::Entity::find()
         .filter(score::Column::Id.eq(answer))
         .one(&*DATABASE)
@@ -22,15 +23,22 @@ pub async fn get_judge_result(answer: i32, judge: i64) -> Result<(HashMap<Uuid, 
     if let Some(res) = score {
         let score: HashMap<Uuid, i32> = serde_json::from_value(res.scores).unwrap();
 
-        return Ok((score, res.user_score, res.full_score, res.completed));
+        return Ok(JudgeResult {
+            full: res.full_score,
+            user: res.user_score,
+            scores: score,
+            completed: res.completed,
+            judge: res.judge,
+            judge_time: res.judge_time,
+        });
     }
 
     let result = auto_judge(answer, judge).await?;
 
-    Ok((result.0, result.1, result.2, false))
+    Ok(result)
 }
 
-async fn auto_judge(answer: i32, judge: i64) -> Result<(HashMap<Uuid, i32>, i32, i32), ErrorMessage> {
+async fn auto_judge(answer: i32, judge: i64) -> Result<JudgeResult, ErrorMessage> {
     let answer = Answer::find()
         .filter(crate::model::generated::answer::Column::Id.eq(answer))
         .one(&*DATABASE).await.unwrap().unwrap();
@@ -62,7 +70,14 @@ async fn auto_judge(answer: i32, judge: i64) -> Result<(HashMap<Uuid, i32>, i32,
 
     save_judge_result(&scores, answer.user, judge, answer.id, user, full, false).await?;
 
-    Ok((scores, user, full))
+    Ok(JudgeResult {
+        full,
+        user,
+        scores,
+        completed: false,
+        judge,
+        judge_time: Utc::now().naive_utc(),
+    })
 }
 
 async fn save_judge_result(
@@ -92,4 +107,14 @@ async fn save_judge_result(
     }
 
     Ok(())
+}
+
+#[derive(Serialize)]
+pub struct JudgeResult {
+    pub full: i32,
+    pub user: i32,
+    pub scores: HashMap<Uuid, i32>,
+    pub completed: bool,
+    pub judge: i64,
+    pub judge_time: NaiveDateTime,
 }

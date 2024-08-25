@@ -16,17 +16,10 @@ use crate::model::judge::{get_judge_result};
 
 pub async fn auto_judge(Query(query): Query<JudgeRequest>, AdminTokenInfo(admin): AdminTokenInfo) -> Result<String, ErrorMessage> {
     info!("Admin {} is judging answer {}", admin.id, query.answer);
-    
-    let (scores, user, full, completed) = get_judge_result(query.answer, admin.id).await?;
 
-    let response = JudgeResponse {
-        full,
-        user,
-        scores,
-        completed
-    };
+    let result = get_judge_result(query.answer, admin.id).await?;
 
-    Ok(serde_json::to_string(&response).unwrap())
+    Ok(serde_json::to_string(&result).unwrap())
 }
 
 #[derive(Deserialize)]
