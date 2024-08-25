@@ -8,7 +8,7 @@ use migration::async_trait::async_trait;
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, QueryFilter};
 
-pub async fn get_admin_by_id(id: i32) -> Option<admin::Model> {
+pub async fn get_admin_by_id(id: i64) -> Option<admin::Model> {
     Admin::find()
         .filter(admin::Column::Id.eq(id))
         .one(&*crate::DATABASE).await.unwrap()
