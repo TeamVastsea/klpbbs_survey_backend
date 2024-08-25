@@ -6,10 +6,11 @@ use crate::service::judge::judge_subjectives;
 use crate::service::questions::get_question_by_id;
 use crate::DATABASE;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait};
+use sea_orm::{ActiveModelTrait, ColumnTrait, NotSet};
 use sea_orm::{EntityTrait, QueryFilter};
 use std::collections::HashMap;
 use uuid::Uuid;
+use crate::model::question::ConditionType::Not;
 
 pub async fn get_judge_result(answer: i32, judge: i64) -> Result<(HashMap<Uuid, i32>, i32, i32), ErrorMessage> {
     let score = score::Entity::find()
@@ -80,6 +81,7 @@ async fn save_judge_result(
         scores: Set(serde_json::to_value(judge_result).unwrap()),
         user_score: Set(user_score),
         full_score: Set(full_score),
+        completed: NotSet,
     };
 
     if exist {

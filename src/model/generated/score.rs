@@ -12,6 +12,7 @@ pub struct Model {
     pub scores: Json,
     pub user_score: i32,
     pub full_score: i32,
+    pub completed: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
