@@ -3,8 +3,12 @@ use crate::model::generated::survey;
 use crate::DATABASE;
 use axum::extract::{Path, Query};
 use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
+use tracing::debug;
+use crate::service::token::TokenInfo;
 
-pub async fn query_surveys(Query(query): Query<QueryParams>) -> String {
+pub async fn query_surveys(Query(query): Query<QueryParams>, TokenInfo(user): TokenInfo) -> String {
+    debug!("User {} is trying to get surveys", user.uid);
+    
     let size = query.size.unwrap_or(10);
     let page = query.page.unwrap_or(1);
 
