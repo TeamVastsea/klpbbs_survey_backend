@@ -7,7 +7,6 @@ use axum::http::request::Parts;
 use migration::async_trait::async_trait;
 use sea_orm::ColumnTrait;
 use sea_orm::{EntityTrait, QueryFilter};
-use tracing::debug;
 
 pub async fn get_admin_by_id(id: i64) -> Option<admin::Model> {
     Admin::find()

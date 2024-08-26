@@ -7,7 +7,6 @@ use lazy_static::lazy_static;
 use moka::future::Cache;
 use rand::Rng;
 use std::time::Duration;
-use tracing::debug;
 
 lazy_static! {
     static ref TOKEN_CACHE: Cache<String, Option<UserData>> = Cache::builder()
