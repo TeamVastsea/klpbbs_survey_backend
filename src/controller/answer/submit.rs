@@ -69,33 +69,33 @@ pub async fn submit_answer(TokenInfo(user): TokenInfo, Json(request): Json<Submi
         }
     }
     
-    let answer_object = new_answer.as_object().ok_or(ErrorMessage::InvalidField)?;
+    // let answer_object = new_answer.as_object().ok_or(ErrorMessage::InvalidField)?;
     
-    if complete {
-        let survey = Survey::find()
-            .filter(survey::Column::Id.eq(request.survey))
-            .one(&*DATABASE)
-            .await.unwrap()
-            .ok_or(ErrorMessage::NotFound)?;
-
-        let mut page = get_page_by_id(&survey.page).await;
-
-        while let Some(ref page_info) = page {
-            for question in &page_info.content {
-                let question = get_question_by_id(question).await.unwrap();
-                
-                if question.required && !answer_object.contains_key(&question.id) {
-                    return Err(ErrorMessage::MissingField);
-                }
-            }
-            
-            page = if let Some(ref next) = page_info.next {
-                get_page_by_id(next).await
-            } else {
-                None
-            };
-        }
-    }
+    // if complete {
+    //     let survey = Survey::find()
+    //         .filter(survey::Column::Id.eq(request.survey))
+    //         .one(&*DATABASE)
+    //         .await.unwrap()
+    //         .ok_or(ErrorMessage::NotFound)?;
+    // 
+    //     let mut page = get_page_by_id(&survey.page).await;
+    // 
+    //     while let Some(ref page_info) = page {
+    //         for question in &page_info.content {
+    //             let question = get_question_by_id(question).await.unwrap();
+    //             
+    //             if question.required && !answer_object.contains_key(&question.id) {
+    //                 return Err(ErrorMessage::MissingField);
+    //             }
+    //         }
+    //         
+    //         page = if let Some(ref next) = page_info.next {
+    //             get_page_by_id(next).await
+    //         } else {
+    //             None
+    //         };
+    //     }
+    // }
     
     answer.answers = Set(new_answer);
     answer.completed = Set(request.complete.unwrap_or(false));
