@@ -8,16 +8,16 @@ use tracing::info;
 pub async fn get_question(Path(question): Path<String>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     info!("User {} is trying to get question {}", user.uid, question);
     
-    let Some(mut page) = get_question_by_id(&question).await
+    let Some(mut question) = get_question_by_id(&question).await
     else {
         return Err(ErrorMessage::NotFound);
     };
     
-    page.answer = None;
-    page.all_points = None;
-    page.sub_points = None;
+    question.answer = None;
+    question.all_points = None;
+    question.sub_points = None;
 
-    Ok(serde_json::to_string(&page).unwrap())
+    Ok(serde_json::to_string(&question).unwrap())
 }
 
 pub async fn get_admin_question(Path(question): Path<String>, AdminTokenInfo(admin): AdminTokenInfo) -> Result<String, ErrorMessage> {

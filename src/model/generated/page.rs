@@ -11,6 +11,7 @@ pub struct Model {
     pub title: String,
     pub content: Vec<String>,
     pub next: Option<String>,
+    pub previous: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

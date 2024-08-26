@@ -75,7 +75,7 @@ pub async fn save_question(content: JsonValue,
     id_generate
 }
 
-pub async fn save_page(title: String, content: Vec<String>, next: Option<String>, id: Option<String>) -> String {
+pub async fn save_page(title: String, content: Vec<String>, next: Option<String>, previous: Option<String>, id: Option<String>) -> String {
     let id_generate = id.clone().unwrap_or(Uuid::new_v4().to_string());
 
     let page = page::ActiveModel {
@@ -83,6 +83,7 @@ pub async fn save_page(title: String, content: Vec<String>, next: Option<String>
         title: Set(title),
         content: Set(content),
         next: Set(next),
+        previous: Set(previous),
     };
 
     let after = if id.is_some() {
