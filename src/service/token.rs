@@ -48,13 +48,6 @@ where S: Send + Sync {
             .to_str()
             .map_err(|_| ErrorMessage::InvalidToken)?;
 
-        if token == "111" {
-            return Ok(TokenInfo(UserData {
-                uid: "111".to_string(),
-                username: "111".to_string(),
-            }));
-        }
-
         let user = get_user_id(token).await
             .ok_or(ErrorMessage::TokenNotActivated)?;
 
