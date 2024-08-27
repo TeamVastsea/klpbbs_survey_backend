@@ -11,6 +11,7 @@ use sea_orm::{EntityTrait, QueryFilter};
 pub async fn get_admin_by_id(id: i64) -> Option<admin::Model> {
     Admin::find()
         .filter(admin::Column::Id.eq(id))
+        .filter(admin::Column::Disabled.eq(false))
         .one(&*crate::DATABASE).await.unwrap()
 }
 
