@@ -37,7 +37,7 @@ shadow-rs = "0.33.0"
 
 #database
 migration = {path = "migration"}
-sea-orm = { version = "0.12.15", features = ["macros", "sqlx-postgres", "runtime-tokio-rustls"] }
+sea-orm = { version = "1.0.1", features = ["macros", "sqlx-postgres", "runtime-tokio-rustls"] }
 futures = "0.3.30"
 chrono = "0.4.38"
 
