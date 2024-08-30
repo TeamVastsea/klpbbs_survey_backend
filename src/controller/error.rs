@@ -2,15 +2,15 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 
 pub enum ErrorMessage {
-    InvalidParams(String),
+    // InvalidParams(String),
     InvalidToken,
     TokenNotActivated,
     PermissionDenied,
     TooManySubmit,
     NotFound,
-    InvalidField,
-    MissingField,
-    Other(String),
+    // InvalidField,
+    // MissingField,
+    // Other(String),
     DatabaseError(String),
 }
 
@@ -19,9 +19,9 @@ impl IntoResponse for ErrorMessage {
         let builder = Response::builder();
 
         match self {
-            ErrorMessage::InvalidParams(name) => {
-                builder.status(StatusCode::BAD_REQUEST).body(format!("Invalid params: {}.", name).into()).unwrap()
-            }
+            // ErrorMessage::InvalidParams(name) => {
+            //     builder.status(StatusCode::BAD_REQUEST).body(format!("Invalid params: {}.", name).into()).unwrap()
+            // }
 
             ErrorMessage::InvalidToken => {
                 builder.status(StatusCode::UNAUTHORIZED).body("Invalid token.".into()).unwrap()
@@ -38,18 +38,23 @@ impl IntoResponse for ErrorMessage {
             ErrorMessage::NotFound => {
                 builder.status(StatusCode::NOT_FOUND).body("Not found.".into()).unwrap()
             }
-            ErrorMessage::Other(text) => {
-                builder.status(StatusCode::INTERNAL_SERVER_ERROR).body(text.into()).unwrap()
-            }
+            
+            // ErrorMessage::Other(text) => {
+            //     builder.status(StatusCode::INTERNAL_SERVER_ERROR).body(text.into()).unwrap()
+            // }
+            
             ErrorMessage::TooManySubmit => {
                 builder.status(StatusCode::TOO_MANY_REQUESTS).body("Too many submit.".into()).unwrap()
             }
-            ErrorMessage::InvalidField => {
-                builder.status(StatusCode::BAD_REQUEST).body("Invalid field.".into()).unwrap()
-            }
-            ErrorMessage::MissingField => {
-                builder.status(StatusCode::BAD_REQUEST).body("Missing field.".into()).unwrap()
-            }
+            
+            // ErrorMessage::InvalidField => {
+            //     builder.status(StatusCode::BAD_REQUEST).body("Invalid field.".into()).unwrap()
+            // }
+            //
+            // ErrorMessage::MissingField => {
+            //     builder.status(StatusCode::BAD_REQUEST).body("Missing field.".into()).unwrap()
+            // }
+            
             ErrorMessage::DatabaseError(text) => {
                 builder.status(StatusCode::INTERNAL_SERVER_ERROR).body(format!("Database error: {}", text).into()).unwrap()
             }

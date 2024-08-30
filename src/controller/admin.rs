@@ -13,7 +13,7 @@ pub async fn get_admin_info(Query(query): Query<AdminInfoRequest>, AdminTokenInf
     let admin = Admin::find()
         .filter(crate::model::generated::admin::Column::Id.eq(query.id))
         .one(&*crate::DATABASE).await.unwrap()
-        .ok_or(ErrorMessage::NotFound)?;
+        .ok_or(ErrorMessage::PermissionDenied)?;
 
     Ok(serde_json::to_string(&admin).unwrap())
 }
