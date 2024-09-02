@@ -1,6 +1,7 @@
 use crate::controller::error::ErrorMessage;
 use crate::model::generated::prelude::{Answer, Survey};
 use crate::model::generated::{answer, survey};
+use crate::model::judge::get_judge_result;
 use crate::service::token::TokenInfo;
 use crate::DATABASE;
 use axum::Json;
@@ -100,8 +101,13 @@ pub async fn submit_answer(TokenInfo(user): TokenInfo, Json(request): Json<Submi
     answer.completed = Set(request.complete.unwrap_or(false));
     
     let ret = answer.save(&*DATABASE).await.unwrap();
+    let id = ret.id.unwrap();
+    
+    if complete {
+        get_judge_result(id, 0).await?;
+    }
 
-    Ok(ret.id.unwrap().to_string())
+    Ok(id.to_string())
 }
 
 #[derive(FromQueryResult, Serialize, Debug)]
