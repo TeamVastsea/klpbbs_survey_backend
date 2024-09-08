@@ -1,3 +1,4 @@
+use ammonia::clean;
 use crate::controller::error::ErrorMessage;
 use crate::model::generated::survey;
 use crate::service::admin::AdminTokenInfo;
@@ -38,7 +39,7 @@ pub async fn create_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request):
         id: NotSet,
         title: Set(request.title),
         budge: Set(request.budge),
-        description: Set(request.description),
+        description: Set(clean(&request.description)),
         image: Set(request.image),
         page: Set(request.page),
         start_date: Set(request.start_date),
