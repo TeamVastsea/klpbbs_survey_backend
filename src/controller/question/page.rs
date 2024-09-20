@@ -6,7 +6,7 @@ use crate::service::token::TokenInfo;
 use axum::extract::Query;
 use axum::Json;
 use serde::Deserialize;
-use tracing::{debug, info};
+use tracing::info;
 
 pub async fn get_page(Query(query): Query<GetPageQuery>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     info!("User {} is trying to get page {}", user.uid, query.page);

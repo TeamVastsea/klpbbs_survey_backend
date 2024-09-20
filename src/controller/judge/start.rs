@@ -1,13 +1,6 @@
 use crate::controller::error::ErrorMessage;
-use crate::model::generated::prelude::{Answer, Page, Survey};
-use crate::model::question::Question;
 use crate::service::admin::AdminTokenInfo;
-use crate::service::judge::judge_subjectives;
-use crate::service::questions::get_question_by_id;
-use crate::DATABASE;
 use axum::extract::Query;
-use sea_orm::ColumnTrait;
-use sea_orm::{EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::info;
