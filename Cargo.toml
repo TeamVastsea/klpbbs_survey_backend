@@ -1,0 +1,6 @@
+[package]
+name = "klpbbs_survey_backend"
+version = "1.5.0"
+edition = "2021"
+
+[dependencies]

@@ -1,0 +1,10 @@
+/target
+/migration/target/
+/config/
+/logs/
+
+#idea
+/.idea/
+
+.env
+.DS_Store
