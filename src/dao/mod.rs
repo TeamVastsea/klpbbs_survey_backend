@@ -1,2 +1,2 @@
-mod entity;
-mod model;
+pub mod entity;
+pub mod model;

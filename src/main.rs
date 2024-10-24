@@ -1,5 +1,6 @@
 use axum::extract::DefaultBodyLimit;
 use axum::http::HeaderValue;
+use axum::Router;
 use axum_server::tls_rustls::RustlsConfig;
 use lazy_static::lazy_static;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
@@ -18,6 +19,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 use migration::{Migrator, MigratorTrait};
 use crate::config::core::{CoreConfig};
 use crate::config::get_config;
+use crate::config::oauth::OAuthConfig;
 
 mod config;
 mod controller;
@@ -26,6 +28,7 @@ mod dao;
 
 lazy_static! {
     static ref CORE_CONFIG: CoreConfig = get_config("core");
+    static ref OAUTH_CONFIG: OAuthConfig = get_config("oauth");
     static ref DATABASE: DatabaseConnection = {
         let mut opt = ConnectOptions::new(&CORE_CONFIG.db_uri);
         opt.sqlx_logging(true);
@@ -64,7 +67,8 @@ async fn main() {
     Migrator::up(&*DATABASE, None).await.unwrap();
 
     let origins = CORE_CONFIG.origins.clone().iter().map(|x| x.parse().unwrap()).collect::<Vec<HeaderValue>>();
-    let app = controller::all_routers()
+    let app = Router::new()
+        .nest("/api", controller::all_routers())
         .layer(TraceLayer::new(
             StatusInRangeAsFailures::new(400..=599).into_make_classifier()
         ))
