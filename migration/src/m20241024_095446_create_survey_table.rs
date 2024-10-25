@@ -13,6 +13,7 @@ impl MigrationTrait for Migration {
                     .table(Survey::Table)
                     .if_not_exists()
                     .col(pk_auto(Survey::Id))
+                    .col(string(Survey::Title))
                     .col(char_len(Survey::Badge, 10))
                     .col(string(Survey::Description))
                     .col(string(Survey::Image))
@@ -38,6 +39,7 @@ impl MigrationTrait for Migration {
 enum Survey {
     Table,
     Id,
+    Title,
     Badge,
     Description,
     Image,

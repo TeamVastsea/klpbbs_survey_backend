@@ -45,6 +45,7 @@ pub async fn delete_by_token(token: &str) {
 }
 
 pub struct TokenInfo(pub UserData);
+pub struct AdminTokenInfo(pub UserData);
 
 #[async_trait]
 impl<S> FromRequestParts<S> for TokenInfo
@@ -64,6 +65,31 @@ where
             .ok_or(ErrorMessage::InvalidToken)?;
 
         Ok(TokenInfo(user))
+    }
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for AdminTokenInfo
+where
+    S: Send + Sync,
+{
+    type Rejection = ErrorMessage;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let headers = &parts.headers;
+        let token = headers.get("token")
+            .ok_or(ErrorMessage::InvalidToken)?
+            .to_str()
+            .map_err(|_| ErrorMessage::InvalidToken)?;
+
+        let user = get_user_id(token).await
+            .ok_or(ErrorMessage::InvalidToken)?;
+        
+        if !user.admin { 
+            return Err(ErrorMessage::PermissionDenied);
+        }
+
+        Ok(AdminTokenInfo(user))
     }
 }
 
