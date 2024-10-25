@@ -17,3 +17,8 @@ pub async fn get_other_user_info(TokenInfo(user): TokenInfo, Path(other): Path<S
     
     Ok(serde_json::to_string(&other).unwrap())
 }
+
+pub async fn invalidate_token(TokenInfo(user): TokenInfo) -> Result<(), ErrorMessage> {
+    user.remove_token().await;
+    Ok(())
+}
