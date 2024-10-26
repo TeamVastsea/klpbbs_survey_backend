@@ -1,5 +1,5 @@
 use sea_orm_migration::prelude::*;
-use sea_orm_migration::schema::{boolean, integer, integer_null, pk_uuid, string, string_null, uuid};
+use sea_orm_migration::schema::{boolean, integer, integer_null, pk_auto, pk_uuid, string, string_null, uuid};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -12,9 +12,8 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Question::Table)
                     .if_not_exists()
-                    .col(pk_uuid(Question::Id))
-                    .col(uuid(Question::Page))
-                    .col(integer(Question::Order).auto_increment())
+                    .col(pk_auto(Question::Id))
+                    .col(integer(Question::Page))
                     .col(string(Question::Content))
                     .col(integer(Question::Type))
                     .col(string_null(Question::Values))
@@ -52,7 +51,6 @@ enum Question {
     Table,
     Id,
     Page,
-    Order,
     Content,
     Type,
     Values,

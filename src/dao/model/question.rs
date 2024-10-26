@@ -24,7 +24,7 @@ impl Question {
         let question = question::Entity::find()
             .filter(question::Column::Id.eq(Uuid::parse_str(id).map_err(|_| ErrorMessage::InvalidField {
                 field: String::from("id"),
-                should_be: String::from("uuid")
+                should_be: String::from("uuid"),
             })?))
             .one(&*crate::DATABASE).await.unwrap()
             .ok_or(ErrorMessage::NotFound)?;
@@ -33,37 +33,33 @@ impl Question {
 
         question.to_modal()
     }
-    
+
     pub async fn find_by_page(page_id: &str) -> Result<Vec<Self>, ErrorMessage> {
         let questions = question::Entity::find()
-            .filter(question::Column::Page.eq(Uuid::parse_str(page_id).map_err(|_| ErrorMessage::InvalidField {
-                field: String::from("page_id"),
-                should_be: String::from("uuid")
-            })?))
-            .order_by_asc(question::Column::Order)
+            .filter(question::Column::Page.eq(page_id))
+            .order_by_asc(question::Column::Id)
             .all(&*crate::DATABASE).await.unwrap();
 
         questions.iter().map(|q| q.clone().to_modal()).collect::<Result<Vec<_>, _>>()
     }
-    
+
     pub async fn update(&self) {
         QUESTION_CACHE.invalidate(&self.id.to_string()).await;
-        
+
         let entity = self.to_entity().into_active_model();
         entity.update(&*crate::DATABASE).await.unwrap();
     }
-    
+
     pub async fn create(new_question: NewQuestion) -> Option<Self> {
         let (answer, all_points, sub_points) = if let Some(a) = new_question.answer {
             (Some(serde_json::to_string(&a).unwrap()), Some(a.all_points), a.sub_points)
         } else {
             (None, None, None)
         };
-        
+
         let question = question::ActiveModel {
-            id: Set(Uuid::new_v4()),
+            id: NotSet,
             page: Set(new_question.page),
-            order: NotSet,
             content: Set(new_question.content),
             r#type: Set(new_question.r#type),
             values: Set(new_question.values.map(|v| serde_json::to_string(&v).unwrap())),
@@ -73,17 +69,16 @@ impl Question {
             all_points: Set(all_points),
             sub_points: Set(sub_points),
         };
-        
+
         question.insert(&*crate::DATABASE).await.ok()?.to_modal().ok()
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Question {
-    pub id: Uuid,
+    pub id: i32,
     pub content: String,
-    pub page: Uuid,
-    pub order: i32,
+    pub page: i32,
     pub r#type: QuestionType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub values: Option<Vec<ValueWithTitle>>,
@@ -126,7 +121,7 @@ pub struct Answer {
 #[derive(Deserialize)]
 pub struct NewQuestion {
     pub content: String,
-    pub page: Uuid,
+    pub page: i32,
     pub r#type: QuestionType,
     pub values: Option<Vec<ValueWithTitle>>,
     pub condition: Option<Vec<Condition>>,
@@ -136,25 +131,23 @@ pub struct NewQuestion {
 
 impl question::Model {
     fn to_modal(&self) -> Result<Question, ErrorMessage> {
-        
         Ok(Question {
             id: self.id,
             content: self.content.clone(),
             page: self.page,
-            order: self.order,
             r#type: self.r#type,
             values: self.values.clone().map(|v| serde_json::from_str(&v).map_err(|_| ErrorMessage::InvalidField {
                 field: String::from("values"),
-                should_be: String::from("json")
+                should_be: String::from("json"),
             })).transpose()?,
             condition: self.condition.clone().map(|c| serde_json::from_str(&c).map_err(|_| ErrorMessage::InvalidField {
                 field: String::from("condition"),
-                should_be: String::from("json")
+                should_be: String::from("json"),
             })).transpose()?,
             required: self.required,
             answer: self.clone().answer.map(|a| serde_json::from_str(&a).map_err(|_| ErrorMessage::InvalidField {
                 field: String::from("answer"),
-                should_be: String::from("json")
+                should_be: String::from("json"),
             })).transpose()?,
         })
     }
@@ -167,11 +160,10 @@ impl Question {
         } else {
             (None, None, None)
         };
-        
+
         question::Model {
             id: self.id,
             page: self.page,
-            order: self.order,
             content: self.content.clone(),
             r#type: self.r#type,
             values: self.values.clone().map(|v| serde_json::to_string(&v).unwrap()),

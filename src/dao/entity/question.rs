@@ -6,10 +6,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "question")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub id: Uuid,
-    pub page: Uuid,
-    pub order: i32,
+    #[sea_orm(primary_key)]
+    pub id: i32,
+    pub page: i32,
     pub content: String,
     pub r#type: QuestionType,
     pub values: Option<String>,

@@ -10,83 +10,74 @@ use sea_orm::{ColumnTrait, PaginatorTrait, QueryOrder};
 use uuid::Uuid;
 
 lazy_static! {
-    pub static ref PAGE_CACHE: Cache<String, page::Model> = Cache::new(10000);
+    pub static ref PAGE_CACHE: Cache<i32, page::Model> = Cache::new(10000);
 }
 
 impl page::Model {
-    pub async fn find_by_id(id: &str) -> Result<Self, ErrorMessage> {
-        if let Some(a) = PAGE_CACHE.get(id).await {
+    pub async fn find_by_id(id: i32) -> Result<Self, ErrorMessage> {
+        if let Some(a) = PAGE_CACHE.get(&id).await {
             return Ok(a);
         }
 
         let page = Page::find()
-            .filter(page::Column::Id.eq(Uuid::parse_str(id).map_err(|_| ErrorMessage::InvalidField {
-                field: String::from("id"),
-                should_be: String::from("uuid")
-            })?))
+            .filter(page::Column::Id.eq(id))
             .one(&*DATABASE).await.unwrap()
             .ok_or(ErrorMessage::NotFound)?;
 
-        PAGE_CACHE.insert(id.to_string(), page.clone()).await;
+        PAGE_CACHE.insert(id, page.clone()).await;
 
         Ok(page)
     }
-    
-    pub async fn get_by_survey_and_index(survey: &str, index: u64) -> Result<(Self, u64), ErrorMessage> {
+
+    pub async fn get_by_survey_and_index(survey: i32, index: u64) -> Result<(Self, u64), ErrorMessage> {
         let page = Page::find()
-            .filter(page::Column::Survey.eq(Uuid::parse_str(survey).map_err(|_| ErrorMessage::InvalidField {
-                field: String::from("survey"),
-                should_be: String::from("uuid")
-            })?))
-            .order_by_asc(page::Column::Order)
+            .filter(page::Column::Survey.eq(survey))
+            .order_by_asc(page::Column::Id)
             .paginate(&*DATABASE, 1);
-        
+
         let content = page.fetch_page(index).await.unwrap().pop().ok_or(ErrorMessage::NotFound)?;
         let page = page.num_pages().await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
 
         Ok((content, page))
     }
-    
+
     pub async fn check_access(&self) -> Result<(bool, bool, bool), ErrorMessage> {
         let survey = self.find_related(Survey).one(&*DATABASE).await.unwrap().ok_or(ErrorMessage::NotFound)?;
-        
+
         Ok((survey.allow_submit, survey.allow_view, survey.allow_re_submit))
     }
-    
+
     pub async fn new_page(title: String, survey: i32) -> Self {
         let page = page::ActiveModel {
-            id: Set(Uuid::new_v4()),
+            id: NotSet,
             title: Set(title),
-            order: NotSet,
             survey: Set(survey),
         };
-        
+
         page.insert(&*DATABASE).await.unwrap()
     }
-    
-    pub async fn update(id: &str, title: String, order: i32) -> Self {
-        PAGE_CACHE.invalidate(id).await;
-        
+
+    pub async fn update(id: i32, title: String) -> Self {
+        PAGE_CACHE.invalidate(&id).await;
+
         let page = page::ActiveModel {
-            id: Set(Uuid::parse_str(id).unwrap()),
+            id: Set(id),
             title: Set(title),
-            order: Set(order),
             survey: NotSet,
         };
-        
+
         page.update(&*DATABASE).await.unwrap()
     }
-    
-    pub async fn delete(id: &str) {
-        PAGE_CACHE.invalidate(id).await;
-        
+
+    pub async fn delete(id: i32) {
+        PAGE_CACHE.invalidate(&id).await;
+
         let page = page::ActiveModel {
-            id: Set(id.parse().unwrap()),
+            id: Set(id),
             title: NotSet,
-            order: NotSet,
             survey: NotSet,
         };
-        
+
         page.delete(&*DATABASE).await.unwrap();
     }
 }
