@@ -8,7 +8,7 @@ pub enum ErrorMessage {
     PermissionDenied,
     TooManySubmit,
     NotFound,
-    // InvalidField,
+    InvalidField{field: String, should_be: String},
     // MissingField,
     // Other(String),
     DatabaseError(String),
@@ -47,10 +47,10 @@ impl IntoResponse for ErrorMessage {
                 builder.status(StatusCode::TOO_MANY_REQUESTS).body("Too many submit.".into()).unwrap()
             }
             
-            // ErrorMessage::InvalidField => {
-            //     builder.status(StatusCode::BAD_REQUEST).body("Invalid field.".into()).unwrap()
-            // }
-            //
+            ErrorMessage::InvalidField{field, should_be} => {
+                builder.status(StatusCode::BAD_REQUEST).body(format!("Field {} should be {}.", field, should_be).into()).unwrap()
+            }
+            
             // ErrorMessage::MissingField => {
             //     builder.status(StatusCode::BAD_REQUEST).body("Missing field.".into()).unwrap()
             // }

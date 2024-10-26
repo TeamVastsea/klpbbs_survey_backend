@@ -1,14 +1,14 @@
-use ammonia::clean;
 use crate::controller::error::ErrorMessage;
+use crate::dao::entity::survey;
+use crate::service::token::AdminTokenInfo;
 use crate::DATABASE;
+use ammonia::clean;
 use axum::Json;
 use sea_orm::prelude::DateTime;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, IntoActiveModel, NotSet};
 use serde::Deserialize;
 use tracing::info;
-use crate::dao::entity::survey;
-use crate::service::token::AdminTokenInfo;
 
 pub async fn modify_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request): Json<survey::Model>) -> Result<String, ErrorMessage> {
     info!("Admin {} modify survey {}", admin.uid, request.id);
@@ -16,11 +16,9 @@ pub async fn modify_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request):
         description: clean(&request.description),
         ..request
     };
-    let survey = survey.into_active_model();
+    let survey = survey.into_active_model().reset_all();
 
     let result = survey.update(&*DATABASE).await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
-
-
     Ok(result.id.to_string())
 }
 
@@ -51,7 +49,6 @@ pub struct CreateSurveyRequest {
     pub badge: String,
     pub description: String,
     pub image: String,
-    pub page: String,
     pub start_date: DateTime,
     pub end_date: DateTime,
     pub allow_submit: bool,

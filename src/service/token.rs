@@ -27,7 +27,7 @@ async fn get_token(user: &UserData) -> String {
 }
 
 pub async fn get_user_id(token: &str) -> Option<UserData> {
-    let time = token.split('-').next().unwrap().parse::<i64>().unwrap();
+    let time = token.split('-').next()?.parse::<i64>().ok()?;
     if Utc::now().timestamp() - time > 60 * 60 * 24 * 7 { 
         return None;
     }

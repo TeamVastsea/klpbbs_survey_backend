@@ -3,6 +3,7 @@ pub mod error;
 mod oauth;
 mod user;
 mod survey;
+mod page;
 
 use axum::{Router};
 use axum::routing::get;
@@ -14,4 +15,5 @@ pub fn all_routers() -> Router {
         .route("/user/:other", get(user::get_other_user_info))
         .nest("/oauth", oauth::get_oauth_routers())
         .nest("/survey", survey::get_survey_routes())
+        .nest("/page", page::get_page_routes())
 }
