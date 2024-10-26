@@ -1,3 +1,4 @@
+use futures::StreamExt;
 use crate::controller::error::ErrorMessage;
 use crate::dao::entity::page;
 use crate::dao::entity::prelude::{Page, Survey};
@@ -5,7 +6,7 @@ use crate::DATABASE;
 use lazy_static::lazy_static;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, EntityTrait, ModelTrait, NotSet, QueryFilter};
+use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, ModelTrait, NotSet, QueryFilter, QuerySelect};
 use sea_orm::{ColumnTrait, PaginatorTrait, QueryOrder};
 use uuid::Uuid;
 
@@ -47,14 +48,45 @@ impl page::Model {
         Ok((survey.allow_submit, survey.allow_view, survey.allow_re_submit))
     }
 
-    pub async fn new_page(title: String, survey: i32) -> Self {
-        let page = page::ActiveModel {
+    pub async fn new_page(title: String, survey: i32, index: i32) -> Self {
+        let mut pages = Page::find()
+            .filter(page::Column::Survey.eq(survey))
+            .order_by_asc(page::Column::Id)
+            .offset(index as u64)
+            .stream(&*DATABASE).await.unwrap();
+        
+        let Some(first) = pages.next().await else {
+            let page = page::ActiveModel {
+                id: NotSet,
+                title: Set(title),
+                survey: Set(survey),
+            };
+            
+            return page.insert(&*DATABASE).await.unwrap();
+        };
+        let first = first.unwrap();
+        let mut last = first.title.clone();
+        
+        while let Some(page) = pages.next().await {
+            let page = page.unwrap();
+            
+            let mut changes = page.clone().into_active_model();
+            changes.title = Set(last);
+            changes.update(&*DATABASE).await.unwrap();
+            
+            last = page.title;
+        }
+        
+        let last = page::ActiveModel {
             id: NotSet,
-            title: Set(title),
+            title: Set(last),
             survey: Set(survey),
         };
-
-        page.insert(&*DATABASE).await.unwrap()
+        last.insert(&*DATABASE).await.unwrap();
+        
+        let mut created_page = first.into_active_model();
+        created_page.title = Set(title);
+        created_page.update(&*DATABASE).await.unwrap()
     }
 
     pub async fn update(id: i32, title: String) -> Self {

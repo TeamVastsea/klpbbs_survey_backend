@@ -8,9 +8,9 @@ use crate::service::token::AdminTokenInfo;
 
 pub async fn new_page(AdminTokenInfo(admin): AdminTokenInfo, Json(query): Json<CreatePageRequest>) -> String {
     info!("Admin {} create new page", admin.uid);
-    
-    let result = page::Model::new_page(query.title, query.survey).await;
-    
+
+    let result = page::Model::new_page(query.title, query.survey, query.index).await;
+
     serde_json::to_string(&result).unwrap()
 }
 
@@ -28,4 +28,5 @@ pub async fn modify_page(AdminTokenInfo(admin): AdminTokenInfo, Json(body): Json
 pub struct CreatePageRequest {
     title: String,
     survey: i32,
+    index: i32,
 }
