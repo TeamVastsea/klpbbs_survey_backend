@@ -1,40 +1,37 @@
 use crate::controller::error::ErrorMessage;
-use crate::dao::entity::question;
 use crate::dao::entity::question::QuestionType;
+use crate::dao::entity::{page, question};
 use crate::dao::model::ValueWithTitle;
 use lazy_static::lazy_static;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
-use sea_orm::QueryFilter;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, NotSet, QueryOrder};
 use sea_orm::{ColumnTrait, JsonValue};
+use sea_orm::{ModelTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 lazy_static! {
-    pub static ref QUESTION_CACHE: Cache<String, question::Model> = Cache::new(10000);
+    pub static ref QUESTION_CACHE: Cache<i32, question::Model> = Cache::new(10000);
 }
 
 impl Question {
-    pub async fn find_by_id(id: &str) -> Result<Self, ErrorMessage> {
-        if let Some(a) = QUESTION_CACHE.get(id).await {
+    pub async fn find_by_id(id: i32) -> Result<Self, ErrorMessage> {
+        if let Some(a) = QUESTION_CACHE.get(&id).await {
             return a.to_modal();
         }
 
         let question = question::Entity::find()
-            .filter(question::Column::Id.eq(Uuid::parse_str(id).map_err(|_| ErrorMessage::InvalidField {
-                field: String::from("id"),
-                should_be: String::from("uuid"),
-            })?))
+            .filter(question::Column::Id.eq(id))
             .one(&*crate::DATABASE).await.unwrap()
             .ok_or(ErrorMessage::NotFound)?;
 
-        QUESTION_CACHE.insert(id.to_string(), question.clone()).await;
+        QUESTION_CACHE.insert(id, question.clone()).await;
 
         question.to_modal()
     }
 
-    pub async fn find_by_page(page_id: &str) -> Result<Vec<Self>, ErrorMessage> {
+    pub async fn find_by_page(page_id: i32) -> Result<Vec<Self>, ErrorMessage> {
         let questions = question::Entity::find()
             .filter(question::Column::Page.eq(page_id))
             .order_by_asc(question::Column::Id)
@@ -44,10 +41,35 @@ impl Question {
     }
 
     pub async fn update(&self) {
-        QUESTION_CACHE.invalidate(&self.id.to_string()).await;
+        QUESTION_CACHE.invalidate(&self.id).await;
 
-        let entity = self.to_entity().into_active_model();
+        let entity = self.to_entity().into_active_model().reset_all();
         entity.update(&*crate::DATABASE).await.unwrap();
+    }
+
+    pub async fn change_position(from: i32, to: i32) -> bool {
+        let from = Question::find_by_id(from).await.unwrap().to_entity();
+        let to = Question::find_by_id(to).await.unwrap().to_entity();
+
+        if from.page != to.page {
+            return false;
+        }
+
+        let mut from_active = from.clone().into_active_model();
+        let mut to_active = to.clone().into_active_model();
+        from_active.content = Set(to.content);
+        from_active.answer = Set(to.answer);
+        from_active.all_points = Set(to.all_points);
+        from_active.sub_points = Set(to.sub_points);
+        to_active.content = Set(from.content);
+        to_active.answer = Set(from.answer);
+        to_active.all_points = Set(from.all_points);
+        to_active.sub_points = Set(from.sub_points);
+
+        from_active.update(&*crate::DATABASE).await.unwrap();
+        to_active.update(&*crate::DATABASE).await.unwrap();
+
+        true
     }
 
     pub async fn create(new_question: NewQuestion) -> Option<Self> {
@@ -71,6 +93,11 @@ impl Question {
         };
 
         question.insert(&*crate::DATABASE).await.ok()?.to_modal().ok()
+    }
+
+    pub async fn get_access(&self) -> Result<bool, ErrorMessage> {
+        let page = page::Model::find_by_id(self.page).await.unwrap();
+        page.check_access().await.map(|a| a.0)
     }
 }
 

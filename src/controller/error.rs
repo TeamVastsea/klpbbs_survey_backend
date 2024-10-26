@@ -1,6 +1,7 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 
+#[derive(Debug)]
 pub enum ErrorMessage {
     // InvalidParams(String),
     InvalidToken,

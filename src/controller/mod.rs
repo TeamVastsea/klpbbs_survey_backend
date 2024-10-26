@@ -4,6 +4,7 @@ mod oauth;
 mod user;
 mod survey;
 mod page;
+mod question;
 
 use axum::{Router};
 use axum::routing::get;
@@ -16,4 +17,5 @@ pub fn all_routers() -> Router {
         .nest("/oauth", oauth::get_oauth_routers())
         .nest("/survey", survey::get_survey_routes())
         .nest("/page", page::get_page_routes())
+        .nest("/question", question::get_question_routers())
 }
