@@ -12,8 +12,8 @@ pub async fn new_question(Json(question): Json<NewQuestion>) -> Result<String, E
     Ok(question.id.to_string())
 }
 
-pub async fn modify_question(Json(question): Json<question::Model>) -> String {
-    let result = question.into_active_model().reset_all().update(&*crate::DATABASE).await.unwrap();
+pub async fn modify_question(Json(question): Json<Question>) -> String {
+    let result = question.to_entity().into_active_model().reset_all().update(&*crate::DATABASE).await.unwrap();
 
     result.id.to_string()
 }

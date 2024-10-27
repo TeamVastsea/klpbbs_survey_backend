@@ -28,7 +28,7 @@ pub async fn get_question(Path(question): Path<i32>, TokenInfo(user): TokenInfo)
 }
 
 pub async fn get_question_by_page(Query(query): Query<GetQuestionPageRequest>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
-    info!("User {} is trying to get questions from page {}", user.uid, query.page);
+    info!("User {}(admin: {}) is trying to get questions from page {}", user.uid, user.admin, query.page);
 
     let mut questions = Question::find_by_page(query.page).await?;
 
@@ -41,10 +41,6 @@ pub async fn get_question_by_page(Query(query): Query<GetQuestionPageRequest>, T
         for question in &mut questions {
             question.answer = None;
         }
-    }
-
-    for question in &mut questions {
-        question.answer = None;
     }
 
     Ok(serde_json::to_string(&questions).unwrap())

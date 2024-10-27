@@ -34,7 +34,6 @@ enum User {
     Table,
     Id,
     Credential,
-    IssuedAt,
     Admin,
     Disabled,
     Username,

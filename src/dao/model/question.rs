@@ -9,6 +9,7 @@ use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, NotSet, QueryOrder
 use sea_orm::{ColumnTrait, JsonValue};
 use sea_orm::{ModelTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use uuid::Uuid;
 
 lazy_static! {
@@ -74,7 +75,7 @@ impl Question {
 
     pub async fn create(new_question: NewQuestion) -> Option<Self> {
         let (answer, all_points, sub_points) = if let Some(a) = new_question.answer {
-            (Some(serde_json::to_string(&a).unwrap()), Some(a.all_points), a.sub_points)
+            (Some(a.answer), a.all_points, a.sub_points)
         } else {
             (None, None, None)
         };
@@ -82,7 +83,7 @@ impl Question {
         let question = question::ActiveModel {
             id: NotSet,
             page: Set(new_question.page),
-            content: Set(new_question.content),
+            content: Set(serde_json::to_string(&new_question.content).unwrap()),
             r#type: Set(new_question.r#type),
             values: Set(new_question.values.map(|v| serde_json::to_string(&v).unwrap())),
             condition: Set(new_question.condition.map(|c| serde_json::to_string(&c).unwrap())),
@@ -104,7 +105,7 @@ impl Question {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Question {
     pub id: i32,
-    pub content: String,
+    pub content: ValueWithTitle,
     pub page: i32,
     pub r#type: QuestionType,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -112,7 +113,7 @@ pub struct Question {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub condition: Option<Vec<Condition>>,
     pub required: bool,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub answer: Option<Answer>,
 }
 
@@ -140,14 +141,14 @@ pub enum ConditionType {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Answer {
-    pub all_points: i32,
+    pub all_points: Option<i32>,
     pub sub_points: Option<i32>,
     pub answer: String,
 }
 
 #[derive(Deserialize)]
 pub struct NewQuestion {
-    pub content: String,
+    pub content: ValueWithTitle,
     pub page: i32,
     pub r#type: QuestionType,
     pub values: Option<Vec<ValueWithTitle>>,
@@ -160,7 +161,7 @@ impl question::Model {
     pub fn to_modal(&self) -> Result<Question, ErrorMessage> {
         Ok(Question {
             id: self.id,
-            content: self.content.clone(),
+            content: serde_json::from_str(&self.content).unwrap(),
             page: self.page,
             r#type: self.r#type,
             values: self.values.clone().map(|v| serde_json::from_str(&v).map_err(|_| ErrorMessage::InvalidField {
@@ -172,10 +173,11 @@ impl question::Model {
                 should_be: String::from("json"),
             })).transpose()?,
             required: self.required,
-            answer: self.clone().answer.map(|a| serde_json::from_str(&a).map_err(|_| ErrorMessage::InvalidField {
-                field: String::from("answer"),
-                should_be: String::from("json"),
-            })).transpose()?,
+            answer: self.answer.clone().map(|ans| Answer {
+                all_points: self.all_points,
+                sub_points: self.sub_points,
+                answer: ans,
+            }),
         })
     }
 }
@@ -183,7 +185,7 @@ impl question::Model {
 impl Question {
     pub fn to_entity(&self) -> question::Model {
         let (answer, all_points, sub_points) = if let Some(a) = &self.answer {
-            (Some(serde_json::to_string(&a).unwrap()), Some(a.all_points), a.sub_points)
+            (Some(a.answer.clone()), a.all_points, a.sub_points)
         } else {
             (None, None, None)
         };
@@ -191,7 +193,7 @@ impl Question {
         question::Model {
             id: self.id,
             page: self.page,
-            content: self.content.clone(),
+            content: serde_json::to_string(&self.content).unwrap(),
             r#type: self.r#type,
             values: self.values.clone().map(|v| serde_json::to_string(&v).unwrap()),
             condition: self.condition.clone().map(|c| serde_json::to_string(&c).unwrap()),
