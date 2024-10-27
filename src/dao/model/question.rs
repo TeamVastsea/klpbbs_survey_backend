@@ -1,3 +1,4 @@
+use futures::StreamExt;
 use crate::controller::error::ErrorMessage;
 use crate::dao::entity::question::QuestionType;
 use crate::dao::entity::{page, question};
@@ -5,12 +6,12 @@ use crate::dao::model::ValueWithTitle;
 use lazy_static::lazy_static;
 use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, NotSet, QueryOrder};
+use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, NotSet, Order, PaginatorTrait, QueryOrder, QuerySelect};
 use sea_orm::{ColumnTrait, JsonValue};
-use sea_orm::{ModelTrait, QueryFilter};
+use sea_orm::{QueryFilter};
 use serde::{Deserialize, Serialize};
-use tracing::info;
 use uuid::Uuid;
+use crate::DATABASE;
 
 lazy_static! {
     pub static ref QUESTION_CACHE: Cache<i32, question::Model> = Cache::new(10000);
@@ -48,32 +49,66 @@ impl Question {
         entity.update(&*crate::DATABASE).await.unwrap();
     }
 
-    pub async fn change_position(from: i32, to: i32) -> bool {
-        let from = Question::find_by_id(from).await.unwrap();
-        let to = Question::find_by_id(to).await.unwrap();
+    pub async fn change_position(page: i32, from: i32, to: i32) -> Result<(), ErrorMessage> {
+        let total = question::Entity::find()
+            .filter(question::Column::Page.eq(page))
+            .count(&*DATABASE).await
+            .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))? as i32;
+        
+        let (offset, limit, order) = if from < to {
+            (from, to - from + 1, Order::Asc)
+        } else {
+            (total - from - 1, from - to + 1, Order::Desc)
+        };
+        
+        let mut pages = question::Entity::find()
+            .filter(question::Column::Page.eq(page))
+            .order_by(question::Column::Id, order)
+            .offset(offset as u64)
+            .limit(Some(limit as u64))
+            .stream(&*DATABASE).await.unwrap();
+        
+        let first = pages.next().await.ok_or(ErrorMessage::NotFound)?
+            .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
+        
+        let mut current = first.clone();
+        QUESTION_CACHE.invalidate(&current.id).await;
+        
+        while let Some(next) = pages.next().await {
+            let next = next.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
+            
+            let mut active = current.into_active_model();
+            active.answer = Set(next.answer.clone());
+            active.sub_points = Set(next.sub_points);
+            active.all_points = Set(next.all_points);
+            active.content = Set(next.content.clone());
+            active.condition = Set(next.condition.clone());
+            active.required = Set(next.required);
+            active.r#type = Set(next.r#type);
+            active.values = Set(next.values.clone());
+            active.update(&*DATABASE).await.unwrap();
 
-        if from.page != to.page {
-            return false;
+            QUESTION_CACHE.invalidate(&next.id).await;
+            
+            current = next;
         }
+        
+        let mut active = current.into_active_model();
+        active.answer = Set(first.answer.clone());
+        active.sub_points = Set(first.sub_points);
+        active.all_points = Set(first.all_points);
+        active.content = Set(first.content.clone());
+        active.condition = Set(first.condition.clone());
+        active.required = Set(first.required);
+        active.r#type = Set(first.r#type);
+        active.values = Set(first.values.clone());
+        active.update(&*DATABASE).await.unwrap();
+        
 
-        let mut from_active = from.clone().into_active_model();
-        let mut to_active = to.clone().into_active_model();
-        from_active.content = Set(to.content);
-        from_active.answer = Set(to.answer);
-        from_active.all_points = Set(to.all_points);
-        from_active.sub_points = Set(to.sub_points);
-        to_active.content = Set(from.content);
-        to_active.answer = Set(from.answer);
-        to_active.all_points = Set(from.all_points);
-        to_active.sub_points = Set(from.sub_points);
-
-        from_active.update(&*crate::DATABASE).await.unwrap();
-        to_active.update(&*crate::DATABASE).await.unwrap();
-
-        true
+        Ok(())
     }
 
-    pub async fn create(new_question: NewQuestion) -> Option<Self> {
+    pub async fn create(new_question: NewQuestion) -> Result<Self, ErrorMessage> {
         let (answer, all_points, sub_points) = if let Some(a) = new_question.answer {
             (Some(a.answer), a.all_points, a.sub_points)
         } else {
@@ -93,7 +128,8 @@ impl Question {
             sub_points: Set(sub_points),
         };
 
-        question.insert(&*crate::DATABASE).await.ok()?.to_modal().ok()
+        question.insert(&*crate::DATABASE).await
+            .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?.to_modal()
     }
 
     pub async fn get_access(&self) -> Result<bool, ErrorMessage> {
@@ -204,3 +240,16 @@ impl Question {
         }
     }
 }
+
+
+/*
+1 2 3 4 5
+  f   t
+offset 1
+limit 3
+
+1 4 2 3 5
+  f   t
+offset 1
+limit 3
+*/

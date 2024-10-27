@@ -31,7 +31,7 @@ lazy_static! {
     static ref OAUTH_CONFIG: OAuthConfig = get_config("oauth");
     static ref DATABASE: DatabaseConnection = {
         let mut opt = ConnectOptions::new(&CORE_CONFIG.db_uri);
-        opt.sqlx_logging(true);
+        opt.sqlx_logging(false);
         opt.sqlx_logging_level(LevelFilter::Info);
         futures::executor::block_on(Database::connect(opt)).unwrap_or_else(|e| {
             panic!("Failed to connect to database '{}': {}", CORE_CONFIG.db_uri, e)
