@@ -16,9 +16,9 @@ lazy_static! {
 }
 
 impl Question {
-    pub async fn find_by_id(id: i32) -> Result<Self, ErrorMessage> {
+    pub async fn find_by_id(id: i32) -> Result<question::Model, ErrorMessage> {
         if let Some(a) = QUESTION_CACHE.get(&id).await {
-            return a.to_modal();
+            return Ok(a);
         }
 
         let question = question::Entity::find()
@@ -28,7 +28,7 @@ impl Question {
 
         QUESTION_CACHE.insert(id, question.clone()).await;
 
-        question.to_modal()
+        Ok(question)
     }
 
     pub async fn find_by_page(page_id: i32) -> Result<Vec<Self>, ErrorMessage> {
@@ -48,8 +48,8 @@ impl Question {
     }
 
     pub async fn change_position(from: i32, to: i32) -> bool {
-        let from = Question::find_by_id(from).await.unwrap().to_entity();
-        let to = Question::find_by_id(to).await.unwrap().to_entity();
+        let from = Question::find_by_id(from).await.unwrap();
+        let to = Question::find_by_id(to).await.unwrap();
 
         if from.page != to.page {
             return false;
@@ -96,7 +96,7 @@ impl Question {
     }
 
     pub async fn get_access(&self) -> Result<bool, ErrorMessage> {
-        let page = page::Model::find_by_id(self.page).await.unwrap();
+        let page = page::Model::find_by_id(self.page).await?;
         page.check_access().await.map(|a| a.0)
     }
 }
@@ -157,7 +157,7 @@ pub struct NewQuestion {
 }
 
 impl question::Model {
-    fn to_modal(&self) -> Result<Question, ErrorMessage> {
+    pub fn to_modal(&self) -> Result<Question, ErrorMessage> {
         Ok(Question {
             id: self.id,
             content: self.content.clone(),

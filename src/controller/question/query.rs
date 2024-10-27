@@ -10,10 +10,11 @@ use tracing::info;
 pub async fn get_question(Path(question): Path<i32>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     info!("User {} is trying to get question {}", user.uid, question);
 
-    let Ok(mut question) = Question::find_by_id(question).await
+    let Ok(question) = Question::find_by_id(question).await
     else {
         return Err(ErrorMessage::NotFound);
     };
+    let mut question = question.to_modal()?;
 
     if !user.admin {
         if !question.get_access().await? {
