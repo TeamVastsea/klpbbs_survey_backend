@@ -1,5 +1,5 @@
 use sea_orm_migration::prelude::*;
-use sea_orm_migration::schema::{boolean, char_len, char_len_null, string, string_null, string_uniq, timestamp, timestamp_null};
+use sea_orm_migration::schema::{boolean, string, string_null};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;

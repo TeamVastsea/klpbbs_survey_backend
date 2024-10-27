@@ -1,5 +1,5 @@
 use sea_orm_migration::prelude::*;
-use sea_orm_migration::schema::{integer, pk_auto, pk_uuid, string};
+use sea_orm_migration::schema::{integer, pk_auto, string};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;

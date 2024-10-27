@@ -1,4 +1,4 @@
-use axum::extract::{Query, Json};
+use axum::extract::Json;
 use sea_orm::{ActiveModelTrait, IntoActiveModel};
 use serde::Deserialize;
 use tracing::info;

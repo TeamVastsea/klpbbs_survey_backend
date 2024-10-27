@@ -1,8 +1,6 @@
 use crate::controller::error::ErrorMessage;
-use crate::dao::entity::prelude::Page;
-use crate::dao::entity::question;
 use crate::dao::model::question::Question;
-use crate::service::token::{AdminTokenInfo, TokenInfo};
+use crate::service::token::TokenInfo;
 use axum::extract::{Path, Query};
 use serde::Deserialize;
 use tracing::info;
@@ -35,7 +33,7 @@ pub async fn get_question_by_page(Query(query): Query<GetQuestionPageRequest>, T
     let mut questions = Question::find_by_page(query.page).await?;
 
     if !user.admin {
-        let Some(first) = questions.get(0) else { return Ok("[]".to_string()); };
+        let Some(first) = questions.first() else { return Ok("[]".to_string()); };
         if !first.get_access().await? {
             return Err(ErrorMessage::PermissionDenied);
         }
