@@ -51,7 +51,7 @@ impl page::Model {
         let mut pages = Page::find()
             .filter(page::Column::Survey.eq(survey))
             .order_by_asc(page::Column::Id)
-            .offset(index as u64)
+            .offset((index + 1) as u64)
             .stream(&*DATABASE).await.unwrap();
 
         let Some(first) = pages.next().await else {
