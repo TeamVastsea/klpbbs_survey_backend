@@ -10,7 +10,6 @@ use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, NotSet, Order, Pag
 use sea_orm::{ColumnTrait, JsonValue};
 use sea_orm::{QueryFilter};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use crate::DATABASE;
 
 lazy_static! {
@@ -161,7 +160,7 @@ pub struct Condition {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ConditionInner {
-    pub id: Uuid,
+    pub id: i32,
     pub value: JsonValue,
 }
 

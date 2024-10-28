@@ -4,5 +4,6 @@ pub mod prelude;
 
 pub mod page;
 pub mod question;
+pub mod score;
 pub mod survey;
 pub mod user;

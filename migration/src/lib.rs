@@ -4,6 +4,7 @@ mod m20241024_095446_create_survey_table;
 mod m20241024_100652_create_page_table;
 mod m20241024_101119_create_question_table;
 mod m20241024_142752_create_user_table;
+mod m20241028_063603_create_score_table;
 
 pub struct Migrator;
 
@@ -15,6 +16,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20241024_100652_create_page_table::Migration),
             Box::new(m20241024_101119_create_question_table::Migration),
             Box::new(m20241024_142752_create_user_table::Migration),
+            Box::new(m20241028_063603_create_score_table::Migration),
         ]
     }
 }
