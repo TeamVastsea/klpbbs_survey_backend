@@ -5,6 +5,7 @@ mod user;
 mod survey;
 mod page;
 mod question;
+mod score;
 
 use axum::routing::get;
 use axum::Router;
@@ -18,4 +19,5 @@ pub fn all_routers() -> Router {
         .nest("/survey", survey::get_survey_routes())
         .nest("/page", page::get_page_routes())
         .nest("/question", question::get_question_routers())
+        .nest("/score", score::get_submit_routes())
 }

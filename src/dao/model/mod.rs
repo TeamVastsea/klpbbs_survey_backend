@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub mod user_data;
 pub mod page;
 pub mod question;
+mod score;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PagedData<T> {

@@ -1442,6 +1442,7 @@ dependencies = [
  "diff",
  "futures",
  "lazy_static",
+ "log",
  "migration",
  "moka",
  "rand",

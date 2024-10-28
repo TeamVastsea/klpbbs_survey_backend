@@ -1,5 +1,5 @@
 use sea_orm_migration::prelude::*;
-use sea_orm_migration::schema::{boolean, integer, integer_null, pk_auto, string, string_null, timestamp_null};
+use sea_orm_migration::schema::{boolean, integer, integer_null, pk_auto, string, string_null, timestamp, timestamp_null};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -17,7 +17,7 @@ impl MigrationTrait for Migration {
                     .col(string(Score::User))
                     .col(string(Score::Answer))
                     .col(boolean(Score::Completed).default(false))
-                    .col(timestamp_null(Score::CompleteTime))
+                    .col(timestamp(Score::UpdateTime))
                     .col(string_null(Score::Judge))
                     .col(timestamp_null(Score::JudgeTime))
                     .col(string_null(Score::Scores))
@@ -79,7 +79,7 @@ enum Score {
     User,
     Answer,
     Completed,
-    CompleteTime,
+    UpdateTime,
     Judge,
     JudgeTime,
     Scores,

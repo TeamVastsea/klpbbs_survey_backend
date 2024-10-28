@@ -40,6 +40,7 @@ chrono = "0.4.38"
 reqwest = "0.12.8"
 ammonia = "4.0.0"
 uuid = { version = "1.11.0", features = ["v4"] }
+log = "0.4.22"
 
 [build-dependencies]
 shadow-rs = "0.35.1"
