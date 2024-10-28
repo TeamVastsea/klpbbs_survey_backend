@@ -1,7 +1,6 @@
 use sea_orm::ActiveValue::Set;
 use sea_orm::NotSet;
 use serde_json::Value;
-use crate::dao::entity::prelude::Score;
 use crate::dao::entity::score;
 
 impl score::ActiveModel {

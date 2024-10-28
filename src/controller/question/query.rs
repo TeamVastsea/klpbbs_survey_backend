@@ -1,7 +1,7 @@
 use crate::controller::error::ErrorMessage;
 use crate::dao::model::question::Question;
 use crate::service::token::TokenInfo;
-use axum::extract::{Path, Query};
+use axum::extract::Query;
 use serde::Deserialize;
 use tracing::info;
 
