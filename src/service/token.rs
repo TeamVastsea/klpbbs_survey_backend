@@ -8,7 +8,7 @@ use rand::Rng;
 
 async fn get_token(user: &UserData) -> String {
     let token = user.get_credentials().await;
-    
+
     match token {
         None => {
             let time = Utc::now().timestamp();
@@ -19,19 +19,19 @@ async fn get_token(user: &UserData) -> String {
                 .collect();
             let new_token = format!("{}-{}", time, new_token);
             user.update_credentials(Some(&new_token)).await.unwrap();
-            
+
             new_token
         }
-        Some(t) => {t}
+        Some(t) => { t }
     }
 }
 
 pub async fn get_user_id(token: &str) -> Option<UserData> {
     let time = token.split('-').next()?.parse::<i64>().ok()?;
-    if Utc::now().timestamp() - time > 60 * 60 * 24 * 7 { 
+    if Utc::now().timestamp() - time > 60 * 60 * 24 * 7 {
         return None;
     }
-    
+
     UserData::get_by_credential(token).await
 }
 
@@ -84,8 +84,8 @@ where
 
         let user = get_user_id(token).await
             .ok_or(ErrorMessage::InvalidToken)?;
-        
-        if !user.admin { 
+
+        if !user.admin {
             return Err(ErrorMessage::PermissionDenied);
         }
 
@@ -97,7 +97,7 @@ impl UserData {
     pub async fn get_token(&self) -> String {
         get_token(self).await
     }
-    
+
     pub async fn remove_token(&self) {
         delete_by_user(self).await;
     }

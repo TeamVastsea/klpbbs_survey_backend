@@ -6,21 +6,21 @@ use serde::{Deserialize, Serialize};
 
 pub async fn get_page(Path(id): Path<i32>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     let page = page::Model::find_by_id(id).await?;
-    
-    if !user.admin { 
+
+    if !user.admin {
         let (allow_submit, ..) = page.check_access().await?;
-        
+
         if !allow_submit {
             return Err(ErrorMessage::PermissionDenied);
         }
     }
-    
+
     Ok(serde_json::to_string(&page).unwrap())
 }
 
 pub async fn get_page_by_index(Query(query): Query<IndexPageQuery>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     let pages = page::Model::get_by_survey_and_index(query.survey, query.index).await?;
-    
+
     if !user.admin {
         let (allow_submit, allow_view, ..) = pages.0.check_access().await?;
 
@@ -28,12 +28,12 @@ pub async fn get_page_by_index(Query(query): Query<IndexPageQuery>, TokenInfo(us
             return Err(ErrorMessage::PermissionDenied);
         }
     }
-    
+
     let response = IndexPageResponse {
         data: pages.0,
-        total: pages.1
+        total: pages.1,
     };
-    
+
     Ok(serde_json::to_string(&response).unwrap())
 }
 
@@ -45,7 +45,7 @@ pub struct GetPageQuery {
 #[derive(Deserialize)]
 pub struct IndexPageQuery {
     survey: i32,
-    index: u64
+    index: u64,
 }
 
 #[derive(Serialize)]

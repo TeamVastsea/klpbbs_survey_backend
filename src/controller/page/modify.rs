@@ -1,10 +1,10 @@
+use crate::controller::error::ErrorMessage;
+use crate::dao::entity::page;
+use crate::service::token::AdminTokenInfo;
 use axum::extract::Json;
 use sea_orm::{ActiveModelTrait, IntoActiveModel};
 use serde::Deserialize;
 use tracing::info;
-use crate::controller::error::ErrorMessage;
-use crate::dao::entity::page;
-use crate::service::token::AdminTokenInfo;
 
 pub async fn new_page(AdminTokenInfo(admin): AdminTokenInfo, Json(query): Json<CreatePageRequest>) -> String {
     info!("Admin {} create new page", admin.uid);
@@ -18,7 +18,7 @@ pub async fn modify_page(AdminTokenInfo(admin): AdminTokenInfo, Json(body): Json
     info!("Admin {} modify page {}", admin.uid, body.id);
 
     let page = body.into_active_model().reset_all();
-    
+
     page.update(&*crate::DATABASE).await
         .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))
         .map(|result| result.id.to_string())

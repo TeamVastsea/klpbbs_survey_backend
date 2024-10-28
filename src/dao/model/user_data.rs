@@ -22,7 +22,7 @@ impl UserData {
             .flatten()
             .map(|user| user.into())
     }
-    
+
     pub async fn get_by_credential(credential: &str) -> Option<Self> {
         User::find()
             .filter(user::Column::Credential.eq(credential))
@@ -42,16 +42,16 @@ impl UserData {
             disabled: NotSet,
             username: Set(self.username.clone()),
         };
-        
+
         user.insert(&*DATABASE).await.map(|_| ())
     }
-    
+
     pub async fn get_credentials(&self) -> Option<String> {
         #[derive(FromQueryResult)]
         struct UserCredential {
-            credential: Option<String>
+            credential: Option<String>,
         }
-        
+
         let user = User::find()
             .filter(user::Column::Id.eq(&self.uid))
             .select_only()
@@ -61,10 +61,10 @@ impl UserData {
             .await
             .ok()
             .flatten();
-        
+
         user.and_then(|u| u.credential)
     }
-    
+
     pub async fn update_credentials(&self, credential: Option<&str>) -> Result<(), sea_orm::error::DbErr> {
         let user = user::ActiveModel {
             id: Set(self.uid.clone()),
@@ -73,7 +73,7 @@ impl UserData {
             disabled: NotSet,
             username: NotSet,
         };
-        
+
         user.update(&*DATABASE).await.map(|_| ())
     }
 }

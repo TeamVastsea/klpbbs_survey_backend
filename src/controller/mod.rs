@@ -6,8 +6,8 @@ mod survey;
 mod page;
 mod question;
 
-use axum::{Router};
 use axum::routing::get;
+use axum::Router;
 
 pub fn all_routers() -> Router {
     Router::new()

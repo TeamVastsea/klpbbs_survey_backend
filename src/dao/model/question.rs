@@ -54,29 +54,29 @@ impl Question {
             .filter(question::Column::Page.eq(page))
             .count(&*DATABASE).await
             .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))? as i32;
-        
+
         let (offset, limit, order) = if from < to {
             (from, to - from + 1, Order::Asc)
         } else {
             (total - from - 1, from - to + 1, Order::Desc)
         };
-        
+
         let mut pages = question::Entity::find()
             .filter(question::Column::Page.eq(page))
             .order_by(question::Column::Id, order)
             .offset(offset as u64)
             .limit(Some(limit as u64))
             .stream(&*DATABASE).await.unwrap();
-        
+
         let first = pages.next().await.ok_or(ErrorMessage::NotFound)?
             .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
-        
+
         let mut current = first.clone();
         QUESTION_CACHE.invalidate(&current.id).await;
-        
+
         while let Some(next) = pages.next().await {
             let next = next.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
-            
+
             let mut active = current.into_active_model();
             active.answer = Set(next.answer.clone());
             active.sub_points = Set(next.sub_points);
@@ -89,10 +89,10 @@ impl Question {
             active.update(&*DATABASE).await.unwrap();
 
             QUESTION_CACHE.invalidate(&next.id).await;
-            
+
             current = next;
         }
-        
+
         let mut active = current.into_active_model();
         active.answer = Set(first.answer.clone());
         active.sub_points = Set(first.sub_points);
@@ -103,7 +103,7 @@ impl Question {
         active.r#type = Set(first.r#type);
         active.values = Set(first.values.clone());
         active.update(&*DATABASE).await.unwrap();
-        
+
 
         Ok(())
     }

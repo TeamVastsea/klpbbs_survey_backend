@@ -1,9 +1,9 @@
+use crate::controller::error::ErrorMessage;
+use crate::dao::model::user_data::UserData;
 use crate::OAUTH_CONFIG;
 use axum::extract::Query;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use crate::controller::error::ErrorMessage;
-use crate::dao::model::user_data::UserData;
 
 pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) -> Result<String, ErrorMessage> {
     let data = get_oauth_login(query.token).await?;
