@@ -1,14 +1,14 @@
-use sea_orm::{FromQueryResult, QueryFilter, QuerySelect, SelectColumns};
-use sea_orm::ColumnTrait;
-use axum::extract::Query;
-use sea_orm::EntityTrait;
-use sea_orm::prelude::DateTime;
-use serde::{Deserialize, Serialize};
 use crate::controller::error::ErrorMessage;
 use crate::dao::entity::prelude::Score;
 use crate::dao::entity::score;
-use crate::DATABASE;
 use crate::service::token::TokenInfo;
+use crate::DATABASE;
+use axum::extract::Query;
+use sea_orm::prelude::DateTime;
+use sea_orm::ColumnTrait;
+use sea_orm::EntityTrait;
+use sea_orm::{FromQueryResult, QueryFilter, QuerySelect, SelectColumns};
+use serde::Serialize;
 
 pub async fn get_by_user(Query(query): Query<GetByUserRequest>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     let scores = Score::find()

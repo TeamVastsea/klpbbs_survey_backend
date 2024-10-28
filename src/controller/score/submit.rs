@@ -1,23 +1,23 @@
-use axum::extract::Query;
 use crate::controller::error::ErrorMessage;
 use crate::dao::entity::prelude::{Score, Survey};
 use crate::dao::entity::{score, survey};
 use crate::service::score::combine_answer;
 use crate::service::token::TokenInfo;
 use crate::DATABASE;
+use axum::extract::Query;
 use axum::Json;
+use log::info;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, IntoActiveModel, PaginatorTrait, QueryFilter, QuerySelect, SelectColumns, TryIntoModel};
 use serde::Deserialize;
 use serde_json::Value;
-use log::info;
 
 pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>) -> Result<String, ErrorMessage> {
     #[derive(FromQueryResult)]
     struct SurveyAllowReSubmit {
         allow_re_submit: bool,
     }
-    
+
     let score = match request.id {
         None => {
             let count = Score::find()
@@ -32,11 +32,11 @@ pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>)
                     .one(&*DATABASE).await
                     .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
                     .ok_or(ErrorMessage::NotFound)?;
-                if !survey.allow_re_submit { 
+                if !survey.allow_re_submit {
                     return Err(ErrorMessage::TooManySubmit);
                 }
             }
-            
+
             score::ActiveModel::new(&user.uid, request.content, request.survey)
         }
         Some(id) => {
@@ -74,7 +74,7 @@ pub async fn finish(TokenInfo(user): TokenInfo, Query(query): Query<FinishQuery>
 
     score.completed = Set(true);
     score.update_time = Set(chrono::Utc::now().naive_local());
-    
+
     score.update(&*DATABASE).await
         .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
 
@@ -90,5 +90,5 @@ pub struct SubmitBody {
 
 #[derive(Deserialize)]
 pub struct FinishQuery {
-    id: i32
+    id: i32,
 }
