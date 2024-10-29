@@ -30,6 +30,8 @@ pub async fn get_by_user(Query(query): Query<GetByUserRequest>, TokenInfo(user):
 }
 
 pub async fn get_by_id(Path(id): Path<i32>, AdminTokenInfo(user): AdminTokenInfo) -> Result<String, ErrorMessage> {
+    info!("Admin {} get score {}", user.uid, id);
+    
     let score = Score::find_by_id(id).one(&*DATABASE).await
         .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
         .ok_or(ErrorMessage::NotFound)?;
