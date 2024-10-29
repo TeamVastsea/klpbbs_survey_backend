@@ -7,4 +7,6 @@ mod query;
 pub fn get_submit_routes() -> Router {
     Router::new()
         .route("/", get(query::get_by_user).post(submit::submit).patch(submit::finish))
+        .route("/:id", get(query::get_by_id).patch(submit::rejudge))
+        .route("/search", get(query::search_answer))
 }

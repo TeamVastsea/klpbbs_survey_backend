@@ -2,9 +2,9 @@ use crate::controller::error::ErrorMessage;
 use crate::dao::entity::prelude::{Score, Survey};
 use crate::dao::entity::{score, survey};
 use crate::service::score::combine_answer;
-use crate::service::token::TokenInfo;
+use crate::service::token::{AdminTokenInfo, TokenInfo};
 use crate::DATABASE;
-use axum::extract::Query;
+use axum::extract::{Path, Query};
 use axum::Json;
 use log::info;
 use sea_orm::ActiveValue::Set;
@@ -73,6 +73,32 @@ pub async fn finish(TokenInfo(user): TokenInfo, Query(query): Query<FinishQuery>
         .ok_or(ErrorMessage::NotFound)?.into_active_model();
 
     score.completed = Set(true);
+    score.update_time = Set(chrono::Utc::now().naive_local());
+
+    let score = score.update(&*DATABASE).await
+        .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
+    score.judge_answer().await;
+
+    Ok(())
+}
+
+pub async fn rejudge(Path(id): Path<i32>, AdminTokenInfo(admin): AdminTokenInfo) -> Result<String, ErrorMessage> {
+    info!("Admin {} rejudge score {}", admin.uid, id);
+    let score = Score::find_by_id(id)
+        .one(&*DATABASE).await
+        .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
+        .ok_or(ErrorMessage::NotFound)?;
+    Ok(serde_json::to_string(&score.judge_answer().await).unwrap())
+}
+
+pub async fn confirm(Path(id): Path<i32>, AdminTokenInfo(admin): AdminTokenInfo) -> Result<(), ErrorMessage> {
+    info!("Admin {} confirm score {}", admin.uid, id);
+    let mut score = Score::find_by_id(id)
+        .one(&*DATABASE).await
+        .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
+        .ok_or(ErrorMessage::NotFound)?.into_active_model();
+
+    score.judge = Set(Some(admin.uid));
     score.update_time = Set(chrono::Utc::now().naive_local());
 
     score.update(&*DATABASE).await
