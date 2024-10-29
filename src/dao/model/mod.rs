@@ -1,6 +1,4 @@
 use crate::controller::error::ErrorMessage;
-use crate::dao::model::page::PAGE_CACHE;
-use crate::dao::model::question::QUESTION_CACHE;
 use serde::{Deserialize, Serialize};
 
 pub mod user_data;
@@ -28,21 +26,6 @@ impl TryFrom<String> for ValueWithTitle {
             field: String::from("ValueWithTitle"),
             should_be: String::from("json"),
         })
-    }
-}
-
-pub fn refresh_cache(refresh_type: CacheType) {
-    match refresh_type {
-        CacheType::Question => {
-            QUESTION_CACHE.invalidate_all();
-        }
-        CacheType::Page => {
-            PAGE_CACHE.invalidate_all();
-        }
-        CacheType::Both => {
-            QUESTION_CACHE.invalidate_all();
-            PAGE_CACHE.invalidate_all();
-        }
     }
 }
 

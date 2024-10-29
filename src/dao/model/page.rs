@@ -9,22 +9,12 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, ModelTrait, NotSet, QueryFilter, QuerySelect};
 use sea_orm::{ColumnTrait, PaginatorTrait, QueryOrder};
 
-lazy_static! {
-    pub static ref PAGE_CACHE: Cache<i32, page::Model> = Cache::new(10000);
-}
-
 impl page::Model {
     pub async fn find_by_id(id: i32) -> Result<Self, ErrorMessage> {
-        if let Some(a) = PAGE_CACHE.get(&id).await {
-            return Ok(a);
-        }
-
         let page = Page::find()
             .filter(page::Column::Id.eq(id))
             .one(&*DATABASE).await.unwrap()
             .ok_or(ErrorMessage::NotFound)?;
-
-        PAGE_CACHE.insert(id, page.clone()).await;
 
         Ok(page)
     }
@@ -89,8 +79,6 @@ impl page::Model {
     }
 
     pub async fn update(id: i32, title: String) -> Self {
-        PAGE_CACHE.invalidate(&id).await;
-
         let page = page::ActiveModel {
             id: Set(id),
             title: Set(title),
@@ -101,8 +89,6 @@ impl page::Model {
     }
 
     pub async fn delete(id: i32) {
-        PAGE_CACHE.invalidate(&id).await;
-
         let page = page::ActiveModel {
             id: Set(id),
             title: NotSet,

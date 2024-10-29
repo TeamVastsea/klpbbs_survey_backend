@@ -12,22 +12,13 @@ use sea_orm::{QueryFilter};
 use serde::{Deserialize, Serialize};
 use crate::DATABASE;
 
-lazy_static! {
-    pub static ref QUESTION_CACHE: Cache<i32, question::Model> = Cache::new(10000);
-}
-
 impl Question {
     pub async fn find_by_id(id: i32) -> Result<question::Model, ErrorMessage> {
-        if let Some(a) = QUESTION_CACHE.get(&id).await {
-            return Ok(a);
-        }
 
         let question = question::Entity::find()
             .filter(question::Column::Id.eq(id))
             .one(&*crate::DATABASE).await.unwrap()
             .ok_or(ErrorMessage::NotFound)?;
-
-        QUESTION_CACHE.insert(id, question.clone()).await;
 
         Ok(question)
     }
@@ -42,8 +33,6 @@ impl Question {
     }
 
     pub async fn update(&self) {
-        QUESTION_CACHE.invalidate(&self.id).await;
-
         let entity = self.to_entity().into_active_model().reset_all();
         entity.update(&*crate::DATABASE).await.unwrap();
     }
@@ -71,7 +60,6 @@ impl Question {
             .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
 
         let mut current = first.clone();
-        QUESTION_CACHE.invalidate(&current.id).await;
 
         while let Some(next) = pages.next().await {
             let next = next.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
@@ -86,8 +74,6 @@ impl Question {
             active.r#type = Set(next.r#type);
             active.values = Set(next.values.clone());
             active.update(&*DATABASE).await.unwrap();
-
-            QUESTION_CACHE.invalidate(&next.id).await;
 
             current = next;
         }
