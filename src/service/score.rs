@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::iter::Map;
 use log::info;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, IntoActiveModel};
@@ -29,20 +28,18 @@ impl score::Model {
         let mut page = page::Model::get_by_survey_and_index(self.survey, index).await.unwrap();
 
         while index < page.1 {
-            info!("{}, {}", index, page.1);
             let questions = Question::find_by_page(page.0.id).await.unwrap();
 
             for question in questions {
                 let Some(correct_answer) = question.answer else { 
-                    info!("{:?}", question.answer);
                     continue;
                 };
                 let all = correct_answer.all_points.unwrap_or(0);
-                let sub = correct_answer.all_points.unwrap_or(0);
+                let sub = correct_answer.sub_points.unwrap_or(0);
 
                 let score = match question.r#type {
                     QuestionType::Text | QuestionType::SingleChoice => {
-                        let user_answer = answer.get(&question.id.to_string()).unwrap().as_str().unwrap();
+                        let user_answer = answer.get(question.id.to_string()).unwrap().as_str().unwrap();
                         if user_answer == correct_answer.answer {
                             all
                         } else {
@@ -50,8 +47,9 @@ impl score::Model {
                         }
                     }
                     QuestionType::MultipleChoice => {
-                        let user_answer = answer.get(&question.id.to_string()).unwrap()
-                            .as_array().unwrap().iter().map(|v| v.as_str().unwrap()).collect::<Vec<&str>>();
+                        let user_answer = answer.get(question.id.to_string()).unwrap()
+                            .as_str().unwrap();
+                        let user_answer: Vec<String> = serde_json::from_str(user_answer).unwrap();
                         let correct_answer: Vec<String> = serde_json::from_str(&correct_answer.answer).unwrap();
 
                         let mut flag_wrong = false;
@@ -62,12 +60,17 @@ impl score::Model {
                                 break;
                             }
                         }
+                        
+                        info!("{}", user_answer.len() == correct_answer.len());
 
                         if flag_wrong {
+                            info!("flag_wrong");
                             0
                         } else if user_answer.len() == correct_answer.len() {
+                            info!("all");
                             all
                         } else {
+                            info!("{} {}", sub, all);
                             sub
                         }
                     }
