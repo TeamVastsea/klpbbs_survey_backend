@@ -1,12 +1,12 @@
-use std::collections::HashMap;
+use crate::dao::entity::question::QuestionType;
+use crate::dao::entity::{page, score};
+use crate::dao::model::question::Question;
+use crate::DATABASE;
 use log::info;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, IntoActiveModel};
 use serde_json::Value;
-use crate::dao::entity::{page, score};
-use crate::dao::entity::question::QuestionType;
-use crate::dao::model::question::Question;
-use crate::DATABASE;
+use std::collections::HashMap;
 
 pub fn combine_answer(before: Value, change: Value) -> Value {
     let mut before = before.as_object().unwrap().clone();
@@ -31,7 +31,7 @@ impl score::Model {
             let questions = Question::find_by_page(page.0.id).await.unwrap();
 
             for question in questions {
-                let Some(correct_answer) = question.answer else { 
+                let Some(correct_answer) = question.answer else {
                     continue;
                 };
                 let all = correct_answer.all_points.unwrap_or(0);
@@ -60,7 +60,7 @@ impl score::Model {
                                 break;
                             }
                         }
-                        
+
                         info!("{}", user_answer.len() == correct_answer.len());
 
                         if flag_wrong {

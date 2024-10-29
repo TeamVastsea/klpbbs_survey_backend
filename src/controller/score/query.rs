@@ -33,7 +33,7 @@ pub async fn get_by_id(Path(id): Path<i32>, AdminTokenInfo(user): AdminTokenInfo
     let score = Score::find_by_id(id).one(&*DATABASE).await
         .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
         .ok_or(ErrorMessage::NotFound)?;
-    
+
     Ok(serde_json::to_string(&score).unwrap())
 }
 
@@ -63,7 +63,7 @@ pub async fn search_answer(Query(request): Query<SearchAnswerQuery>, AdminTokenI
         .column_as(score::Column::Judge.is_not_null(), "completed")
         .into_model::<ScoreInfo>()
         .paginate(&*DATABASE, page);
-    
+
     let result = PagedData {
         data: answers.fetch_page(request.page).await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?,
         total: answers.num_pages().await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?,

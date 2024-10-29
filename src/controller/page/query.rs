@@ -1,7 +1,7 @@
 use crate::controller::error::ErrorMessage;
 use crate::dao::entity::page;
 use crate::service::token::TokenInfo;
-use axum::extract::{Query};
+use axum::extract::Query;
 use serde::{Deserialize, Serialize};
 
 // pub async fn get_page(Path(id): Path<i32>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {

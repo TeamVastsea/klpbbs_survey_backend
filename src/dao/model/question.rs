@@ -1,20 +1,17 @@
-use futures::StreamExt;
 use crate::controller::error::ErrorMessage;
 use crate::dao::entity::question::QuestionType;
 use crate::dao::entity::{page, question};
 use crate::dao::model::ValueWithTitle;
-use lazy_static::lazy_static;
-use moka::future::Cache;
+use crate::DATABASE;
+use futures::StreamExt;
 use sea_orm::ActiveValue::Set;
+use sea_orm::QueryFilter;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, NotSet, Order, PaginatorTrait, QueryOrder, QuerySelect};
 use sea_orm::{ColumnTrait, JsonValue};
-use sea_orm::{QueryFilter};
 use serde::{Deserialize, Serialize};
-use crate::DATABASE;
 
 impl Question {
     pub async fn find_by_id(id: i32) -> Result<question::Model, ErrorMessage> {
-
         let question = question::Entity::find()
             .filter(question::Column::Id.eq(id))
             .one(&*crate::DATABASE).await.unwrap()

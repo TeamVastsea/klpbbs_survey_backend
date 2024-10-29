@@ -3,8 +3,6 @@ use crate::dao::entity::page;
 use crate::dao::entity::prelude::{Page, Survey};
 use crate::DATABASE;
 use futures::StreamExt;
-use lazy_static::lazy_static;
-use moka::future::Cache;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, ModelTrait, NotSet, QueryFilter, QuerySelect};
 use sea_orm::{ColumnTrait, PaginatorTrait, QueryOrder};

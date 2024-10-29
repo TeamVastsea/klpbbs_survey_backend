@@ -1,7 +1,7 @@
+use crate::dao::entity::score;
 use sea_orm::ActiveValue::Set;
 use sea_orm::NotSet;
 use serde_json::Value;
-use crate::dao::entity::score;
 
 impl score::ActiveModel {
     pub fn new(user: &str, content: Value, survey: i32) -> Self {

@@ -87,13 +87,13 @@ pub async fn rejudge(Path(id): Path<i32>, AdminTokenInfo(admin): AdminTokenInfo)
         .one(&*DATABASE).await
         .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
         .ok_or(ErrorMessage::NotFound)?;
-    
+
     if score.judge.is_some() {
         return Err(ErrorMessage::TooManySubmit);
     }
 
     info!("Admin {} rejudge score {}", admin.uid, id);
-    
+
     Ok(serde_json::to_string(&score.judge_answer().await).unwrap())
 }
 
