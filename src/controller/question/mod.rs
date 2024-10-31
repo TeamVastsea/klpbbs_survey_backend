@@ -1,14 +1,12 @@
-use axum::routing::{get, post};
+use axum::routing::get;
 use axum::Router;
 
-mod page;
-mod question;
+mod query;
 mod modify;
 
 pub fn get_question_routers() -> Router {
     Router::new()
-        .route("/", get(page::get_page).post(modify::new_question).put(modify::modify_question))
-        .route("/:question", get(question::get_question))
-        .route("/sheet", post(page::new_page).put(page::modify_page))
-        .route("/admin/:question", get(question::get_admin_question))
+        .route("/", get(query::get_question_by_page).post(modify::new_question)
+            .put(modify::modify_question).patch(modify::swap_question))
+    // .route("/:question", get(query::get_question))
 }

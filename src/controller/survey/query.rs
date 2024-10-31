@@ -1,18 +1,18 @@
-use crate::model::generated::prelude::Survey;
-use crate::model::generated::survey;
-use crate::service::admin::get_admin_by_id;
+use crate::controller::error::ErrorMessage;
+use crate::dao::entity::prelude::Survey;
+use crate::dao::entity::survey;
 use crate::service::token::TokenInfo;
 use crate::DATABASE;
 use axum::extract::{Path, Query};
-use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
+use migration::Order;
+use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder};
 use tracing::debug;
-use crate::controller::error::ErrorMessage;
 
 pub async fn query_surveys(Query(query): Query<QueryParams>, TokenInfo(user): TokenInfo) -> String {
-    let admin = get_admin_by_id(user.uid.parse().unwrap()).await.is_some();
+    let admin = user.admin;
 
     debug!("User {} (admin: {admin}) is trying to get surveys", user.uid);
-    
+
     let size = query.size.unwrap_or(10);
     let page = query.page.unwrap_or(1);
 
@@ -41,12 +41,13 @@ pub async fn query_surveys(Query(query): Query<QueryParams>, TokenInfo(user): To
 }
 
 pub async fn query_by_id(Path(id): Path<i32>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
-    let admin = get_admin_by_id(user.uid.parse().unwrap()).await.is_some();
+    let admin = user.admin;
 
     debug!("User {} (admin: {admin}) is trying to get surveys", user.uid);
 
     let mut select = Survey::find()
-        .filter(survey::Column::Id.eq(id));
+        .filter(survey::Column::Id.eq(id))
+        .order_by(survey::Column::Id, Order::Asc);
 
     if !admin {
         select = select.filter(survey::Column::AllowSubmit.eq(true))

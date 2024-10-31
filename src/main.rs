@@ -1,3 +1,6 @@
+use crate::config::core::CoreConfig;
+use crate::config::get_config;
+use crate::config::oauth::OAuthConfig;
 use axum::extract::DefaultBodyLimit;
 use axum::http::HeaderValue;
 use axum::Router;
@@ -18,21 +21,17 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter, Registry};
 
-use crate::config::core::CoreConfig;
-use crate::config::get_config;
-use crate::config::oauth::OAuthConfig;
-
 mod config;
 mod controller;
-mod model;
 mod service;
+mod dao;
 
 lazy_static! {
     static ref CORE_CONFIG: CoreConfig = get_config("core");
     static ref OAUTH_CONFIG: OAuthConfig = get_config("oauth");
     static ref DATABASE: DatabaseConnection = {
         let mut opt = ConnectOptions::new(&CORE_CONFIG.db_uri);
-        opt.sqlx_logging(true);
+        opt.sqlx_logging(CORE_CONFIG.sqlx_log);
         opt.sqlx_logging_level(LevelFilter::Info);
         futures::executor::block_on(Database::connect(opt)).unwrap_or_else(|e| {
             panic!("Failed to connect to database '{}': {}", CORE_CONFIG.db_uri, e)
@@ -47,8 +46,8 @@ async fn main() {
     let file_appender = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
         .filename_suffix("log")
-        .filename_prefix("backend")
-        .build("logs/")
+        .max_log_files(10)
+        .build("logs")
         .unwrap();
     let (non_blocking_appender, _guard) = non_blocking(file_appender);
 

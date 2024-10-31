@@ -1,48 +1,30 @@
-use crate::model::question::{Answer, Condition, QuestionType};
-use crate::model::ValueWithTitle;
-use crate::service::questions::save_question;
+use crate::controller::error::ErrorMessage;
+use crate::dao::model::question::{NewQuestion, Question};
 use axum::Json;
-use serde::Serialize;
+use sea_orm::{ActiveModelTrait, IntoActiveModel};
+use serde::Deserialize;
 
-pub async fn new_question(Json(question): Json<NewQuestionRequest>) -> String {
-    let content = serde_json::to_value(&question.content).unwrap();
-    let values = question.values.clone().map(|values|
-        values.iter().map(|v| serde_json::to_value(v).unwrap()).collect());
-    let condition = question.condition.clone().map(|c| serde_json::to_string(&c).unwrap());
+pub async fn new_question(Json(question): Json<NewQuestion>) -> Result<String, ErrorMessage> {
+    let question = Question::create(question).await?;
 
-    let id = save_question(content, question.r#type, values, condition, question.required,
-                           None, question.answer).await;
-    id.to_string()
+    Ok(question.id.to_string())
 }
 
-pub async fn modify_question(Json(question): Json<ModifyQuestionRequest>) -> String {
-    let content = serde_json::to_value(question.content).unwrap();
-    let values = question.values.map(|values|
-        values.iter().map(|v| serde_json::to_value(v).unwrap()).collect());
-    let condition = question.condition.map(|c| serde_json::to_string(&c).unwrap());
+pub async fn modify_question(Json(question): Json<Question>) -> String {
+    let result = question.to_entity().into_active_model().reset_all().update(&*crate::DATABASE).await.unwrap();
 
-    let id = save_question(content, question.r#type, values, condition, question.required, Some(question.id.clone()),
-                           question.answer).await;
-    id.to_string()
+    result.id.to_string()
 }
 
-#[derive(serde::Deserialize, Serialize, Debug)]
-pub struct NewQuestionRequest {
-    pub content: ValueWithTitle,
-    pub r#type: QuestionType,
-    pub values: Option<Vec<ValueWithTitle>>,
-    pub condition: Option<Vec<Condition>>,
-    pub required: bool,
-    pub answer: Option<Answer>,
+pub async fn swap_question(Json(question): Json<SwapQuestionRequest>) -> Result<String, ErrorMessage> {
+    Question::change_position(question.page, question.from, question.to).await?;
+
+    Ok("".to_string())
 }
 
-#[derive(serde::Deserialize, Serialize)]
-pub struct ModifyQuestionRequest {
-    pub id: String,
-    pub content: ValueWithTitle,
-    pub r#type: QuestionType,
-    pub values: Option<Vec<ValueWithTitle>>,
-    pub condition: Option<Vec<Condition>>,
-    pub required: bool,
-    pub answer: Option<Answer>,
+#[derive(Deserialize)]
+pub struct SwapQuestionRequest {
+    page: i32,
+    from: i32,
+    to: i32,
 }
