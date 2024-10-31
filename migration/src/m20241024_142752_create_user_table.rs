@@ -19,7 +19,19 @@ impl MigrationTrait for Migration {
                     .col(string(User::Username))
                     .to_owned(),
             )
-            .await
+            .await?;
+
+        manager.exec_stmt(
+            Query::insert()
+                .into_table(User::Table)
+                .columns(vec![User::Id, User::Username, User::Admin])
+                .values_panic([
+                    "admin".into(),
+                    "admin".into(),
+                    true.into(),
+                ])
+                .to_owned()
+        ).await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {

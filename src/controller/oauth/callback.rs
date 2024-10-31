@@ -4,6 +4,7 @@ use crate::OAUTH_CONFIG;
 use axum::extract::Query;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use crate::dao::entity::user::UserType;
 
 pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) -> Result<String, ErrorMessage> {
     let data = get_oauth_login(query.token).await?;
@@ -74,6 +75,7 @@ impl CallbackUserData {
                     uid: self.uid.clone(),
                     username: self.username.clone(),
                     admin: false,
+                    source: UserType::Klpbbs,
                 };
                 user.save().await.unwrap();
                 user

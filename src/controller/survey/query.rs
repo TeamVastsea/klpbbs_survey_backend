@@ -22,6 +22,8 @@ pub async fn query_surveys(Query(query): Query<QueryParams>, TokenInfo(user): To
 
     if !admin {
         select = select.filter(survey::Column::AllowSubmit.eq(true))
+            .filter(survey::Column::UserSource.is_null()
+                .or(survey::Column::UserSource.eq(user.source)))
             .filter(survey::Column::AllowView.eq(true))
             .filter(survey::Column::StartDate.lte(current_time))
             .filter(survey::Column::EndDate.gte(current_time));
@@ -51,6 +53,8 @@ pub async fn query_by_id(Path(id): Path<i32>, TokenInfo(user): TokenInfo) -> Res
 
     if !admin {
         select = select.filter(survey::Column::AllowSubmit.eq(true))
+            .filter(survey::Column::UserSource.is_null()
+                .or(survey::Column::UserSource.eq(user.source)))
             .filter(survey::Column::StartDate.lte(chrono::Local::now().naive_local()))
             .filter(survey::Column::EndDate.gte(chrono::Local::now().naive_local()));
     }

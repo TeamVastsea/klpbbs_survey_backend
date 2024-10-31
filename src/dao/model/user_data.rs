@@ -4,12 +4,15 @@ use crate::DATABASE;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, NotSet, QueryFilter, QuerySelect};
 use serde::{Deserialize, Serialize};
+use crate::controller::error::ErrorMessage;
+use crate::dao::entity::user::UserType;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UserData {
     pub uid: String,
     pub username: String,
     pub admin: bool,
+    pub source: UserType,
 }
 
 impl UserData {
@@ -41,6 +44,8 @@ impl UserData {
             admin: Set(self.admin),
             disabled: NotSet,
             username: Set(self.username.clone()),
+            password: NotSet,
+            user_source: Set(self.source),
         };
 
         user.insert(&*DATABASE).await.map(|_| ())
@@ -72,9 +77,26 @@ impl UserData {
             admin: NotSet,
             disabled: NotSet,
             username: NotSet,
+            password: NotSet,
+            user_source: NotSet,
         };
 
         user.update(&*DATABASE).await.map(|_| ())
+    }
+    
+    pub async fn update_password(&self, password: Option<&str>) -> Result<(), ErrorMessage> {
+        let user = user::ActiveModel {
+            id: Set(self.uid.clone()),
+            credential: NotSet,
+            admin: NotSet,
+            disabled: NotSet,
+            username: NotSet,
+            password: Set(password.map(|s| s.to_string())),
+            user_source: NotSet,
+        };
+
+        user.update(&*DATABASE).await.map(|_| ())
+            .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))
     }
 }
 
@@ -84,6 +106,7 @@ impl From<user::Model> for UserData {
             uid: value.id,
             username: value.username,
             admin: value.admin,
+            source: value.user_source,
         }
     }
 }

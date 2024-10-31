@@ -18,23 +18,28 @@ pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>)
         allow_re_submit: bool,
     }
 
+    let survey = Survey::find_by_id(request.survey)
+        .filter(survey::Column::AllowSubmit.eq(true))
+        .filter(survey::Column::StartDate.lte(chrono::Utc::now().naive_local()))
+        .filter(survey::Column::EndDate.gte(chrono::Utc::now().naive_local()))
+        .filter(survey::Column::UserSource.is_null()
+            .or(survey::Column::UserSource.eq(user.source)))
+        .select_only()
+        .select_column(survey::Column::AllowReSubmit)
+        .into_model::<SurveyAllowReSubmit>()
+        .one(&*DATABASE).await
+        .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
+        .ok_or(ErrorMessage::NotFound)?;
+
     let score = match request.id {
         None => {
             let count = Score::find()
                 .filter(score::Column::User.eq(&user.uid))
                 .filter(score::Column::Survey.eq(request.survey))
                 .count(&*DATABASE).await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
-            if count > 0 {
-                let survey = Survey::find_by_id(request.survey)
-                    .select_only()
-                    .select_column(survey::Column::AllowReSubmit)
-                    .into_model::<SurveyAllowReSubmit>()
-                    .one(&*DATABASE).await
-                    .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
-                    .ok_or(ErrorMessage::NotFound)?;
-                if !survey.allow_re_submit {
-                    return Err(ErrorMessage::TooManySubmit);
-                }
+            
+            if count > 0 && !survey.allow_re_submit {
+                return Err(ErrorMessage::TooManySubmit);
             }
 
             score::ActiveModel::new(&user.uid, request.content, request.survey)

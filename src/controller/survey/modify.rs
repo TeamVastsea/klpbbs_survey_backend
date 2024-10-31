@@ -9,6 +9,7 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, IntoActiveModel, NotSet};
 use serde::Deserialize;
 use tracing::info;
+use crate::dao::entity::user::UserType;
 
 pub async fn modify_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request): Json<survey::Model>) -> Result<String, ErrorMessage> {
     info!("Admin {} modify survey {}", admin.uid, request.id);
@@ -36,6 +37,7 @@ pub async fn create_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request):
         allow_view: Set(request.allow_view),
         allow_judge: Set(request.allow_judge),
         allow_re_submit: Set(request.allow_re_submit),
+        user_source: Set(request.user_source),
     };
 
     let survey = survey.insert(&*DATABASE).await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
@@ -55,4 +57,5 @@ pub struct CreateSurveyRequest {
     pub allow_view: bool,
     pub allow_judge: bool,
     pub allow_re_submit: bool,
+    pub user_source: Option<UserType>,
 }

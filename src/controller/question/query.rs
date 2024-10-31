@@ -34,7 +34,8 @@ pub async fn get_question_by_page(Query(query): Query<GetQuestionPageRequest>, T
 
     if !user.admin {
         let Some(first) = questions.first() else { return Ok("[]".to_string()); };
-        if !first.get_access().await? {
+        let (access, source) = first.get_access().await?;
+        if !access || source.is_some_and(|s| s != user.source) {
             return Err(ErrorMessage::PermissionDenied);
         }
 

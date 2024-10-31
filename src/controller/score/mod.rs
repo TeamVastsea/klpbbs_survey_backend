@@ -3,6 +3,7 @@ use axum::Router;
 
 mod submit;
 mod query;
+mod summarize;
 
 pub fn get_submit_routes() -> Router {
     Router::new()

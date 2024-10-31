@@ -39,10 +39,10 @@ async fn delete_by_user(user: &UserData) {
     user.update_credentials(None).await.unwrap();
 }
 
-pub async fn delete_by_token(token: &str) {
-    let user = UserData::get_by_credential(token).await.unwrap();
-    delete_by_user(&user).await;
-}
+// pub async fn delete_by_token(token: &str) {
+//     let user = UserData::get_by_credential(token).await.unwrap();
+//     delete_by_user(&user).await;
+// }
 
 pub struct TokenInfo(pub UserData);
 pub struct AdminTokenInfo(pub UserData);

@@ -14,7 +14,7 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter", "chrono"] }
 tracing-appender = "0.2.3"
 
 #web
-axum = { version = "0.7.5", features = ["multipart"] }
+axum = { version = "0.7.5", features = ["multipart", "macros"] }
 tower-http = { version = "0.6.1", features = ["catch-panic", "trace", "cors", "sensitive-headers"] }
 axum-server = { version = "0.7.1", features = ["tls-rustls"] }
 
@@ -29,6 +29,11 @@ lazy_static = "1.5.0"
 tokio = "1.41.0"
 diff = "0.1.13"
 shadow-rs = "0.35.1"
+
+#encrypt
+base64 = "0.21.7"
+sha2 = "0.10.8"
+pbkdf2 = "0.12.2"
 
 #database
 migration = { path = "migration" }

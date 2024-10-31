@@ -22,9 +22,9 @@ pub async fn get_page_by_index(Query(query): Query<IndexPageQuery>, TokenInfo(us
     let pages = page::Model::get_by_survey_and_index(query.survey, query.index).await?;
 
     if !user.admin {
-        let (allow_submit, allow_view, ..) = pages.0.check_access().await?;
+        let (allow_submit, allow_view, .., source) = pages.0.check_access().await?;
 
-        if !allow_submit || !allow_view {
+        if !allow_submit || !allow_view || source.is_some_and(|s| s != user.source) {
             return Err(ErrorMessage::PermissionDenied);
         }
     }

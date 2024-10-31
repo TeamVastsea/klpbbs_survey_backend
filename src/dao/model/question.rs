@@ -9,6 +9,7 @@ use sea_orm::QueryFilter;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, NotSet, Order, PaginatorTrait, QueryOrder, QuerySelect};
 use sea_orm::{ColumnTrait, JsonValue};
 use serde::{Deserialize, Serialize};
+use crate::dao::entity::user::UserType;
 
 impl Question {
     pub async fn find_by_id(id: i32) -> Result<question::Model, ErrorMessage> {
@@ -114,9 +115,9 @@ impl Question {
             .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?.to_modal()
     }
 
-    pub async fn get_access(&self) -> Result<bool, ErrorMessage> {
+    pub async fn get_access(&self) -> Result<(bool, Option<UserType>), ErrorMessage> {
         let page = page::Model::find_by_id(self.page).await?;
-        page.check_access().await.map(|a| a.0)
+        page.check_access().await.map(|a| (a.0, a.3))
     }
 }
 

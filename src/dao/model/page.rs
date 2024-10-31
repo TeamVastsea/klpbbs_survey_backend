@@ -6,6 +6,7 @@ use futures::StreamExt;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, ModelTrait, NotSet, QueryFilter, QuerySelect};
 use sea_orm::{ColumnTrait, PaginatorTrait, QueryOrder};
+use crate::dao::entity::user::UserType;
 
 impl page::Model {
     pub async fn find_by_id(id: i32) -> Result<Self, ErrorMessage> {
@@ -29,10 +30,10 @@ impl page::Model {
         Ok((content, page))
     }
 
-    pub async fn check_access(&self) -> Result<(bool, bool, bool), ErrorMessage> {
+    pub async fn check_access(&self) -> Result<(bool, bool, bool, Option<UserType>), ErrorMessage> {
         let survey = self.find_related(Survey).one(&*DATABASE).await.unwrap().ok_or(ErrorMessage::NotFound)?;
 
-        Ok((survey.allow_submit, survey.allow_view, survey.allow_re_submit))
+        Ok((survey.allow_submit, survey.allow_view, survey.allow_re_submit, survey.user_source))
     }
 
     pub async fn new_page(title: String, survey: i32, index: i32) -> Self {
