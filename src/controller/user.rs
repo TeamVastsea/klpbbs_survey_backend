@@ -7,7 +7,6 @@ use crate::service::password::{generate_password_hash, verify_password};
 use crate::service::token::TokenInfo;
 use crate::DATABASE;
 use axum::extract::{Path, Query};
-use axum::{debug_handler, Json};
 use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
 use sea_orm::ActiveValue::Set;
@@ -67,7 +66,7 @@ pub async fn change_password(Query(password): Query<ChangePasswordRequest>) -> R
         .one(&*DATABASE)
         .await
         .unwrap()
-        .ok_or_else(|| ErrorMessage::NotFound)?;
+        .ok_or(ErrorMessage::NotFound)?;
     let Some(password_hash) = user.password.clone() else { return Err(ErrorMessage::PermissionDenied) };
 
     if !verify_password(&password.old, &password_hash) {
