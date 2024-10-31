@@ -61,9 +61,9 @@ pub async fn login(Query(request): Query<RegisterLoginRequest>) -> Result<String
     Ok(user.get_token().await)
 }
 
-pub async fn change_password(TokenInfo(user): TokenInfo, Json(password): Json<ChangePasswordRequest>) -> Result<(), ErrorMessage> {
+pub async fn change_password(Query(password): Query<ChangePasswordRequest>) -> Result<(), ErrorMessage> {
     let user = User::find()
-        .filter(user::Column::Id.eq(&user.uid))
+        .filter(user::Column::Id.eq(password.id))
         .one(&*DATABASE)
         .await
         .unwrap()
@@ -108,6 +108,7 @@ pub struct RegisterLoginRequest {
 
 #[derive(Deserialize)]
 pub struct ChangePasswordRequest {
+    pub id: String,
     pub old: String,
     pub new: String,
 }
