@@ -22,5 +22,7 @@ pub struct CoreConfig {
     pub origins: Vec<String>,
     #[serde_inline_default(true)]
     pub allow_credentials: bool,
+    #[serde_inline_default(true)]
+    pub sqlx_log: bool,
 }
 

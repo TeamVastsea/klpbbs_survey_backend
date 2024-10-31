@@ -1,7 +1,6 @@
 [package]
 name = "klpbbs_survey_backend"
-description = ""
-version = "0.1.0"
+version = "1.5.0"
 edition = "2021"
 build = "build.rs"
 
@@ -16,32 +15,32 @@ tracing-appender = "0.2.3"
 
 #web
 axum = { version = "0.7.5", features = ["multipart"] }
-tower-http = { version = "0.5.2", features = ["catch-panic", "trace", "cors", "sensitive-headers"] }
-axum-server = { version = "0.6.0", features = ["tls-rustls"] }
+tower-http = { version = "0.6.1", features = ["catch-panic", "trace", "cors", "sensitive-headers"] }
+axum-server = { version = "0.7.1", features = ["tls-rustls"] }
 
 #serde
-serde = { version = "1.0.204", features = ["derive"] }
-serde_json = "1.0.121"
-serde-inline-default = "0.2.0"
-toml = "0.8.16"
+serde = { version = "1.0.213", features = ["derive"] }
+serde_json = "1.0.132"
+serde-inline-default = "0.2.2"
+toml = "0.8.19"
 
 #tools
 lazy_static = "1.5.0"
-tokio = "1.39.2"
+tokio = "1.41.0"
 diff = "0.1.13"
-moka = { version = "0.12.8", features = ["future"] }
-rand = "0.8.5"
-reqwest = "0.12.5"
-uuid = { version = "1.9.1", features = ["v4"] }
-shadow-rs = "0.33.0"
+shadow-rs = "0.35.1"
 
 #database
-migration = {path = "migration"}
-sea-orm = { version = "1.0.1", features = ["macros", "sqlx-postgres", "runtime-tokio-rustls"] }
+migration = { path = "migration" }
+sea-orm = { version = "1.1.0", features = ["macros", "sqlx-postgres", "runtime-tokio-rustls"] }
 futures = "0.3.30"
+moka = { version = "0.12.8", features = ["future"] }
+rand = "0.8.5"
 chrono = "0.4.38"
+reqwest = "0.12.8"
 ammonia = "4.0.0"
-
+uuid = { version = "1.11.0", features = ["v4"] }
+log = "0.4.22"
 
 [build-dependencies]
-shadow-rs = "0.33.0"
+shadow-rs = "0.35.1"

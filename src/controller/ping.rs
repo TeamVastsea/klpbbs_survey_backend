@@ -3,7 +3,7 @@ use shadow_rs::shadow;
 
 pub async fn ping() -> String {
     shadow!(build);
-    
+
     let pong = Pong {
         commit: build::SHORT_COMMIT.to_string(),
         branch: build::BRANCH.to_string(),
@@ -11,7 +11,7 @@ pub async fn ping() -> String {
         rust_version: build::RUST_VERSION.to_string(),
         build_channel: build::BUILD_RUST_CHANNEL.to_string(),
     };
-    
+
     serde_json::to_string(&pong).unwrap()
 }
 

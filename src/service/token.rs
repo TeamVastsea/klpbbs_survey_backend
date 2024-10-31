@@ -1,44 +1,57 @@
 use crate::controller::error::ErrorMessage;
-use crate::controller::oauth::callback::UserData;
+use crate::dao::model::user_data::UserData;
 use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
-use lazy_static::lazy_static;
-use moka::future::Cache;
+use chrono::Utc;
 use rand::Rng;
-use std::time::Duration;
 
-lazy_static! {
-    static ref TOKEN_CACHE: Cache<String, Option<UserData>> = Cache::builder()
-        .time_to_idle(Duration::from_secs(60 * 60 * 24 * 7)) //if the key is not accessed for 7 days, it will be removed
-        .build();
-}
+async fn get_token(user: &UserData) -> String {
+    let token = user.get_credentials().await;
 
-pub async fn create_token() -> String {
-    let token: String = rand::thread_rng()
-        .sample_iter(&rand::distributions::Alphanumeric)
-        .take(16)
-        .map(char::from)
-        .collect();
+    match token {
+        None => {
+            let time = Utc::now().timestamp();
+            let new_token: String = rand::thread_rng()
+                .sample_iter(&rand::distributions::Alphanumeric)
+                .take(16)
+                .map(char::from)
+                .collect();
+            let new_token = format!("{}-{}", time, new_token);
+            user.update_credentials(Some(&new_token)).await.unwrap();
 
-    TOKEN_CACHE.insert(token.clone(), None).await;
-
-    token
-}
-
-pub async fn activate_token(token: &str, user_id: UserData) {
-    TOKEN_CACHE.insert(token.to_string(), Some(user_id)).await;
+            new_token
+        }
+        Some(t) => { t }
+    }
 }
 
 pub async fn get_user_id(token: &str) -> Option<UserData> {
-    TOKEN_CACHE.get(token).await.unwrap_or(None)
+    let time = token.split('-').next()?.parse::<i64>().ok()?;
+    if Utc::now().timestamp() - time > 60 * 60 * 24 * 7 {
+        return None;
+    }
+
+    UserData::get_by_credential(token).await
+}
+
+async fn delete_by_user(user: &UserData) {
+    user.update_credentials(None).await.unwrap();
+}
+
+pub async fn delete_by_token(token: &str) {
+    let user = UserData::get_by_credential(token).await.unwrap();
+    delete_by_user(&user).await;
 }
 
 pub struct TokenInfo(pub UserData);
+pub struct AdminTokenInfo(pub UserData);
 
 #[async_trait]
 impl<S> FromRequestParts<S> for TokenInfo
-where S: Send + Sync {
+where
+    S: Send + Sync,
+{
     type Rejection = ErrorMessage;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
@@ -49,8 +62,43 @@ where S: Send + Sync {
             .map_err(|_| ErrorMessage::InvalidToken)?;
 
         let user = get_user_id(token).await
-            .ok_or(ErrorMessage::TokenNotActivated)?;
+            .ok_or(ErrorMessage::InvalidToken)?;
 
         Ok(TokenInfo(user))
+    }
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for AdminTokenInfo
+where
+    S: Send + Sync,
+{
+    type Rejection = ErrorMessage;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let headers = &parts.headers;
+        let token = headers.get("token")
+            .ok_or(ErrorMessage::InvalidToken)?
+            .to_str()
+            .map_err(|_| ErrorMessage::InvalidToken)?;
+
+        let user = get_user_id(token).await
+            .ok_or(ErrorMessage::InvalidToken)?;
+
+        if !user.admin {
+            return Err(ErrorMessage::PermissionDenied);
+        }
+
+        Ok(AdminTokenInfo(user))
+    }
+}
+
+impl UserData {
+    pub async fn get_token(&self) -> String {
+        get_token(self).await
+    }
+
+    pub async fn remove_token(&self) {
+        delete_by_user(self).await;
     }
 }
