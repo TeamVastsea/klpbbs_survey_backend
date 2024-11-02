@@ -74,7 +74,7 @@ pub async fn change_password(Query(password): Query<ChangePasswordRequest>) -> R
     }
 
     let user: UserData = user.into();
-    user.update_password(Some(&password.new)).await?;
+    user.update_password(Some(&generate_password_hash(&password.new))).await?;
     user.remove_token().await;
 
     Ok(())
