@@ -5,30 +5,42 @@ use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use chrono::Utc;
 use rand::Rng;
+async fn new_token(user: &UserData) -> String {
+    let time = Utc::now().timestamp();
+    let new_token: String = rand::thread_rng()
+        .sample_iter(&rand::distributions::Alphanumeric)
+        .take(16)
+        .map(char::from)
+        .collect();
+    let new_token = format!("{}-{}", time, new_token);
+    user.update_credentials(Some(&new_token)).await.unwrap();
+
+    new_token
+}
+
+pub fn validate_token_time(token: &str) -> bool {
+    let Some(time) = token.split('-').next() else { return false };
+    let Some(time) = time.parse::<i64>().ok() else { return false };
+    Utc::now().timestamp() - time <= 60 * 60 * 24 * 7
+}
 
 async fn get_token(user: &UserData) -> String {
     let token = user.get_credentials().await;
 
     match token {
-        None => {
-            let time = Utc::now().timestamp();
-            let new_token: String = rand::thread_rng()
-                .sample_iter(&rand::distributions::Alphanumeric)
-                .take(16)
-                .map(char::from)
-                .collect();
-            let new_token = format!("{}-{}", time, new_token);
-            user.update_credentials(Some(&new_token)).await.unwrap();
-
-            new_token
+        None => { new_token(user).await }
+        Some(t) => {
+            if validate_token_time(&t) {
+                t
+            } else {
+                new_token(user).await
+            }
         }
-        Some(t) => { t }
     }
 }
 
 pub async fn get_user_id(token: &str) -> Option<UserData> {
-    let time = token.split('-').next()?.parse::<i64>().ok()?;
-    if Utc::now().timestamp() - time > 60 * 60 * 24 * 7 {
+    if !validate_token_time(token) {
         return None;
     }
 
