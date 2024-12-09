@@ -36,10 +36,15 @@ impl score::Model {
                 };
                 let all = correct_answer.all_points.unwrap_or(0);
                 let sub = correct_answer.sub_points.unwrap_or(0);
+                let Some(user_answer) = answer.get(question.id.to_string()) else {
+                    scores.insert(question.id, 0);
+                    all_score += all;
+                    continue;
+                };
+                let user_answer = user_answer.as_str().unwrap();
 
                 let score = match question.r#type {
                     QuestionType::Text | QuestionType::SingleChoice => {
-                        let user_answer = answer.get(question.id.to_string()).unwrap().as_str().unwrap();
                         if user_answer == correct_answer.answer {
                             all
                         } else {
@@ -47,8 +52,6 @@ impl score::Model {
                         }
                     }
                     QuestionType::MultipleChoice => {
-                        let user_answer = answer.get(question.id.to_string()).unwrap()
-                            .as_str().unwrap();
                         let user_answer: Vec<String> = serde_json::from_str(user_answer).unwrap();
                         let correct_answer: Vec<String> = serde_json::from_str(&correct_answer.answer).unwrap();
 
