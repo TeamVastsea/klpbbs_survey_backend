@@ -42,6 +42,10 @@ impl score::Model {
                     continue;
                 };
                 let user_answer = user_answer.as_str().unwrap();
+                
+                if user_answer.is_empty() || correct_answer.answer.is_empty() {
+                    continue;
+                }
 
                 let score = match question.r#type {
                     QuestionType::Text | QuestionType::SingleChoice => {
@@ -64,16 +68,11 @@ impl score::Model {
                             }
                         }
 
-                        info!("{}", user_answer.len() == correct_answer.len());
-
                         if flag_wrong {
-                            info!("flag_wrong");
                             0
                         } else if user_answer.len() == correct_answer.len() {
-                            info!("all");
                             all
                         } else {
-                            info!("{} {}", sub, all);
                             sub
                         }
                     }
