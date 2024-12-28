@@ -7,11 +7,12 @@ use crate::DATABASE;
 use axum::extract::{Path, Query};
 use log::info;
 use sea_orm::prelude::DateTime;
-use sea_orm::EntityTrait;
+use sea_orm::{EntityTrait, QueryOrder};
 use sea_orm::{ColumnTrait, PaginatorTrait};
 use sea_orm::{FromQueryResult, QueryFilter, QuerySelect, SelectColumns};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
+use migration::Order;
 
 pub async fn get_by_user(Query(query): Query<GetByUserRequest>, TokenInfo(user): TokenInfo) -> Result<String, ErrorMessage> {
     let scores = Score::find()
@@ -63,6 +64,7 @@ pub async fn search_answer(Query(request): Query<SearchAnswerQuery>, AdminTokenI
         .column(score::Column::User)
         .column(score::Column::UpdateTime)
         .column_as(score::Column::Judge.is_not_null(), "completed")
+        .order_by(score::Column::UpdateTime, Order::Desc)
         .into_model::<ScoreInfo>()
         .paginate(&*DATABASE, page);
 
