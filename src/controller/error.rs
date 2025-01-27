@@ -3,9 +3,9 @@ use axum::response::{IntoResponse, Response};
 
 #[derive(Debug)]
 pub enum ErrorMessage {
-    // InvalidParams(String),
+    InvalidParams(String),
     InvalidToken,
-    TokenNotActivated,
+    // TokenNotActivated,
     PermissionDenied,
     TooManySubmit,
     NotFound,
@@ -20,17 +20,17 @@ impl IntoResponse for ErrorMessage {
         let builder = Response::builder();
 
         match self {
-            // ErrorMessage::InvalidParams(name) => {
-            //     builder.status(StatusCode::BAD_REQUEST).body(format!("Invalid params: {}.", name).into()).unwrap()
-            // }
+            ErrorMessage::InvalidParams(name) => {
+                builder.status(StatusCode::BAD_REQUEST).body(format!("Invalid params: {}.", name).into()).unwrap()
+            }
 
             ErrorMessage::InvalidToken => {
                 builder.status(StatusCode::UNAUTHORIZED).body("Invalid token.".into()).unwrap()
             }
 
-            ErrorMessage::TokenNotActivated => {
-                builder.status(StatusCode::UNAUTHORIZED).body("Token not activated.".into()).unwrap()
-            }
+            // ErrorMessage::TokenNotActivated => {
+            //     builder.status(StatusCode::UNAUTHORIZED).body("Token not activated.".into()).unwrap()
+            // }
 
             ErrorMessage::PermissionDenied => {
                 builder.status(StatusCode::FORBIDDEN).body("Permission denied.".into()).unwrap()

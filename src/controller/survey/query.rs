@@ -14,7 +14,7 @@ pub async fn query_surveys(Query(query): Query<QueryParams>, TokenInfo(user): To
     debug!("User {} (admin: {admin}) is trying to get surveys", user.uid);
 
     let size = query.size.unwrap_or(10);
-    let page = query.page.unwrap_or(1);
+    let page = query.page.unwrap_or(0);
 
     let current_time = chrono::Local::now().naive_local();
 

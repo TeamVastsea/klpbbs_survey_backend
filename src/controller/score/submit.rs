@@ -17,6 +17,10 @@ pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>)
     struct SurveyAllowReSubmit {
         allow_re_submit: bool,
     }
+    
+    if !request.content.is_object() { 
+        return Err(ErrorMessage::InvalidParams("content".to_string()));
+    }
 
     let score = match request.id {
         None => {
