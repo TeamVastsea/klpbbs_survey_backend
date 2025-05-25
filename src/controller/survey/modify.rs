@@ -1,7 +1,8 @@
 use crate::controller::error::ErrorMessage;
-use crate::dao::entity::survey;
+use crate::dao::entity::{page, survey};
 use crate::service::token::AdminTokenInfo;
 use crate::DATABASE;
+use crate::dao::deserialize_datetime_as_z;
 use ammonia::clean;
 use axum::Json;
 use sea_orm::prelude::DateTime;
@@ -26,7 +27,7 @@ pub async fn create_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request):
     info!("Admin {} create survey", admin.uid);
     let survey = survey::ActiveModel {
         id: NotSet,
-        title: Set(request.title),
+        title: Set(request.title.clone()),
         badge: Set(request.badge),
         description: Set(clean(&request.description)),
         image: Set(request.image),
@@ -39,6 +40,8 @@ pub async fn create_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request):
     };
 
     let survey = survey.insert(&*DATABASE).await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
+    
+    page::Model::new_page(request.title, survey.id, 1).await;
 
     Ok(survey.id.to_string())
 }
@@ -49,7 +52,9 @@ pub struct CreateSurveyRequest {
     pub badge: String,
     pub description: String,
     pub image: String,
+    #[serde(deserialize_with = "deserialize_datetime_as_z")]
     pub start_date: DateTime,
+    #[serde(deserialize_with = "deserialize_datetime_as_z")]
     pub end_date: DateTime,
     pub allow_submit: bool,
     pub allow_view: bool,

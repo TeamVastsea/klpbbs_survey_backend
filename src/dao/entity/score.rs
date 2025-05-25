@@ -14,14 +14,15 @@ pub struct Model {
     pub user: String,
     pub answer: String,
     pub completed: bool,
-    #[serde(serialize_with = "serialize_datetime_as_z")]
+    #[serde(serialize_with = "serialize_datetime_as_z", deserialize_with = "deserialize_datetime_as_z")]
     pub update_time: DateTime,
     pub judge: Option<String>,
-    #[serde(serialize_with = "serialize_option_datetime_as_z")]
+    #[serde(serialize_with = "serialize_option_datetime_as_z", deserialize_with = "deserialize_option_datetime_as_z")]
     pub judge_time: Option<DateTime>,
     pub scores: Option<String>,
     pub user_scores: Option<i32>,
     pub full_scores: Option<i32>,
+    pub passed: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -17,6 +17,7 @@ impl score::ActiveModel {
             scores: NotSet,
             user_scores: NotSet,
             full_scores: NotSet,
+            passed: NotSet,
         }
     }
 }

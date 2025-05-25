@@ -2,7 +2,6 @@ use crate::dao::entity::question::QuestionType;
 use crate::dao::entity::{page, score};
 use crate::dao::model::question::Question;
 use crate::DATABASE;
-use log::info;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, IntoActiveModel};
 use serde_json::Value;
@@ -23,9 +22,10 @@ impl score::Model {
         let mut scores = HashMap::new();
         let (mut all_score, mut user_score) = (0, 0);
 
-
         let mut index = 0;
-        let mut page = page::Model::get_by_survey_and_index(self.survey, index).await.unwrap();
+        let mut page = page::Model::get_by_survey_and_index(self.survey, index)
+            .await
+            .unwrap();
 
         while index < page.1 {
             let questions = Question::find_by_page(page.0.id).await.unwrap();
@@ -42,7 +42,7 @@ impl score::Model {
                     continue;
                 };
                 let user_answer = user_answer.as_str().unwrap();
-                
+
                 if user_answer.is_empty() || correct_answer.answer.is_empty() {
                     continue;
                 }
@@ -57,7 +57,8 @@ impl score::Model {
                     }
                     QuestionType::MultipleChoice => {
                         let user_answer: Vec<String> = serde_json::from_str(user_answer).unwrap();
-                        let correct_answer: Vec<String> = serde_json::from_str(&correct_answer.answer).unwrap();
+                        let correct_answer: Vec<String> =
+                            serde_json::from_str(&correct_answer.answer).unwrap();
 
                         let mut flag_wrong = false;
 
@@ -85,7 +86,9 @@ impl score::Model {
 
             index += 1;
             if index < page.1 {
-                page = page::Model::get_by_survey_and_index(self.survey, index).await.unwrap();
+                page = page::Model::get_by_survey_and_index(self.survey, index)
+                    .await
+                    .unwrap();
             }
         }
 
