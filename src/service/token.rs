@@ -1,14 +1,13 @@
 use crate::controller::error::ErrorMessage;
 use crate::dao::model::user_data::UserData;
-use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use chrono::Utc;
 use rand::Rng;
 async fn new_token(user: &UserData) -> String {
     let time = Utc::now().timestamp();
-    let new_token: String = rand::thread_rng()
-        .sample_iter(&rand::distributions::Alphanumeric)
+    let new_token: String = rand::rng()
+        .sample_iter(&rand::distr::Alphanumeric)
         .take(16)
         .map(char::from)
         .collect();
@@ -59,7 +58,6 @@ pub async fn delete_by_token(token: &str) {
 pub struct TokenInfo(pub UserData);
 pub struct AdminTokenInfo(pub UserData);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for TokenInfo
 where
     S: Send + Sync,
@@ -80,7 +78,6 @@ where
     }
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for AdminTokenInfo
 where
     S: Send + Sync,
