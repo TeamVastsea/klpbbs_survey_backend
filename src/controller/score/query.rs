@@ -137,7 +137,9 @@ pub async fn export_by_id(
                 format!(
                     ", [{}]{}{}",
                     question.id,
-                    question_text,
+                    question_text
+                        .replace(",", "，")
+                        .replace("\n", " "),
                     if question.required { "(*)" } else { "" }
                 )
                 .as_str(),
@@ -175,6 +177,7 @@ pub async fn export_by_id(
                             .replace("\"", "")
                             .replace("[", "")
                             .replace("]", "")
+                            .replace("\n", " ")
                     )
                     .as_str(),
                 );
