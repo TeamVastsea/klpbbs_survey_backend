@@ -161,7 +161,7 @@ pub async fn export_by_id(
                 score.user,
                 score.update_time,
                 score.judge.is_some(),
-                score.full_scores.unwrap_or(0)
+                score.user_scores.unwrap_or(0)
             )
             .as_str(),
         );
