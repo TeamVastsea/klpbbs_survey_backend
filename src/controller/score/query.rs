@@ -101,7 +101,10 @@ pub async fn search_answer(
     Ok(serde_json::to_string(&result).unwrap())
 }
 
-pub async fn export_by_id(Path(id): Path<i32>, AdminTokenInfo(user): AdminTokenInfo) -> Result<String, ErrorMessage> {
+pub async fn export_by_id(
+    Path(id): Path<i32>,
+    AdminTokenInfo(user): AdminTokenInfo,
+) -> Result<String, ErrorMessage> {
     info!("Admin {} export scores for survey {}", user.uid, id);
 
     let mut questions: Vec<i32> = Vec::new();
@@ -164,7 +167,17 @@ pub async fn export_by_id(Path(id): Path<i32>, AdminTokenInfo(user): AdminTokenI
             .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
         for question_id in &questions {
             if let Some(answer) = answers.get(question_id) {
-                document.push_str(format!(", {}", answer).as_str());
+                document.push_str(
+                    format!(
+                        ", {}",
+                        answer
+                            .replace(",", "/")
+                            .replace("\"", "")
+                            .replace("[", "")
+                            .replace("]", "")
+                    )
+                    .as_str(),
+                );
             } else {
                 document.push_str(", ");
             }
