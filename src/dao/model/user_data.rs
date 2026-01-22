@@ -5,7 +5,7 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, NotSet, QueryFilter, QuerySelect};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserData {
     pub uid: String,
     pub username: String,

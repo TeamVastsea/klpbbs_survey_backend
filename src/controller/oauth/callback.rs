@@ -4,9 +4,13 @@ use crate::OAUTH_CONFIG;
 use axum::extract::Query;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use tracing::debug;
 
 pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) -> Result<String, ErrorMessage> {
     let data = get_oauth_login(query.token).await?;
+
+
+    debug!("User data: {:?}", data);
 
     Ok(data.get_token().await)
 }
@@ -21,6 +25,8 @@ async fn get_oauth_login(token: String) -> Result<UserData, ErrorMessage> {
         .text()
         .await
         .map_err(|_| ErrorMessage::InvalidToken)?;
+
+    debug!("Oauth replied: {:?}", res);
 
     let user: User = serde_json::from_str(&res).map_err(|_| ErrorMessage::InvalidToken)?;
     Ok(user.data.to_user_data().await)
