@@ -9,7 +9,6 @@ use tracing::debug;
 pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) -> Result<String, ErrorMessage> {
     let data = get_oauth_login(query.token).await?;
 
-
     debug!("User data: {:?}", data);
 
     Ok(data.get_token().await)
@@ -21,10 +20,16 @@ async fn get_oauth_login(token: String) -> Result<UserData, ErrorMessage> {
         .query(&OAuthLoginQuery::new(token))
         .send()
         .await
-        .map_err(|e| ErrorMessage::Other(e.to_string()))?
+        .map_err(|e| {
+            debug!("Failed to send request: {:?}", e);
+            ErrorMessage::InvalidToken
+        })?
         .text()
         .await
-        .map_err(|e| ErrorMessage::Other(e.to_string()))?;
+        .map_err(|e| {
+            debug!("Failed to send request: {:?}", e);
+            ErrorMessage::InvalidToken
+        })?;
 
     debug!("Oauth replied: {:?}", res);
 
