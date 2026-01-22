@@ -15,4 +15,9 @@ FROM debian:trixie-slim AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/klpbbs_survey_backend /app/klpbbs_survey_backend
 
+RUN apt-get update && \
+    apt-get install -y curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 ENTRYPOINT ["/app/klpbbs_survey_backend"]
