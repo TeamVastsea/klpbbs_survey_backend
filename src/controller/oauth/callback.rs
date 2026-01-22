@@ -21,10 +21,10 @@ async fn get_oauth_login(token: String) -> Result<UserData, ErrorMessage> {
         .query(&OAuthLoginQuery::new(token))
         .send()
         .await
-        .map_err(|_| ErrorMessage::InvalidToken)?
+        .map_err(|e| ErrorMessage::Other(e.to_string()))?
         .text()
         .await
-        .map_err(|_| ErrorMessage::InvalidToken)?;
+        .map_err(|e| ErrorMessage::Other(e.to_string()))?;
 
     debug!("Oauth replied: {:?}", res);
 

@@ -11,7 +11,7 @@ pub enum ErrorMessage {
     NotFound,
     InvalidField { field: String, should_be: String },
     // MissingField,
-    // Other(String),
+    Other(String),
     DatabaseError(String),
 }
 
@@ -40,9 +40,9 @@ impl IntoResponse for ErrorMessage {
                 builder.status(StatusCode::NOT_FOUND).body("Not found.".into()).unwrap()
             }
 
-            // ErrorMessage::Other(text) => {
-            //     builder.status(StatusCode::INTERNAL_SERVER_ERROR).body(text.into()).unwrap()
-            // }
+            ErrorMessage::Other(text) => {
+                builder.status(StatusCode::INTERNAL_SERVER_ERROR).body(text.into()).unwrap()
+            }
 
             ErrorMessage::TooManySubmit => {
                 builder.status(StatusCode::TOO_MANY_REQUESTS).body("Too many submit.".into()).unwrap()
