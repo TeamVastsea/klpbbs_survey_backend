@@ -81,6 +81,8 @@ pub async fn search_answer(
         .column(score::Column::Id)
         .column(score::Column::Survey)
         .column(score::Column::User)
+        .column(score::Column::UserScores)
+        .column(score::Column::FullScores)
         .column(score::Column::UpdateTime)
         .column_as(score::Column::Judge.is_not_null(), "completed")
         .order_by(score::Column::UpdateTime, Order::Desc)
@@ -217,6 +219,8 @@ pub struct ScoreInfo {
     pub id: i32,
     pub survey: i32,
     pub user: String,
+    pub user_scores: Option<i32>,
+    pub full_scores: Option<i32>,
     pub update_time: DateTime,
     pub completed: bool,
 }
