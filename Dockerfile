@@ -20,4 +20,5 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+EXPOSE 7890
 CMD ["/app/klpbbs_survey_backend"]
