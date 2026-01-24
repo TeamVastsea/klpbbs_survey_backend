@@ -20,4 +20,4 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENTRYPOINT ["/app/klpbbs_survey_backend"]
+CMD ["/app/klpbbs_survey_backend"]
