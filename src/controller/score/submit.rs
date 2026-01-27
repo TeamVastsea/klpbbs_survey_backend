@@ -46,6 +46,8 @@ pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>)
         Some(id) => {
             let model = Score::find()
                 .filter(score::Column::Id.eq(id))
+                .filter(score::Column::Completed.eq(false))
+                .filter(score::Column::Judge.is_null())
                 .one(&*DATABASE).await
                 .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
                 .ok_or(ErrorMessage::NotFound)?;
@@ -72,6 +74,8 @@ pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>)
 pub async fn finish(TokenInfo(user): TokenInfo, Query(query): Query<FinishQuery>) -> Result<(), ErrorMessage> {
     let mut score = Score::find_by_id(query.id)
         .filter(score::Column::User.eq(&user.uid))
+        .filter(score::Column::Completed.eq(false))
+        .filter(score::Column::Judge.is_null())
         .one(&*DATABASE).await
         .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
         .ok_or(ErrorMessage::NotFound)?.into_active_model();
@@ -88,6 +92,8 @@ pub async fn finish(TokenInfo(user): TokenInfo, Query(query): Query<FinishQuery>
 
 pub async fn rejudge(Path(id): Path<i32>, AdminTokenInfo(admin): AdminTokenInfo) -> Result<String, ErrorMessage> {
     let score = Score::find_by_id(id)
+        .filter(score::Column::Completed.eq(true))
+        .filter(score::Column::Judge.is_null())
         .one(&*DATABASE).await
         .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
         .ok_or(ErrorMessage::NotFound)?;
@@ -104,6 +110,8 @@ pub async fn rejudge(Path(id): Path<i32>, AdminTokenInfo(admin): AdminTokenInfo)
 pub async fn confirm(Path(id): Path<i32>, AdminTokenInfo(admin): AdminTokenInfo) -> Result<(), ErrorMessage> {
     info!("Admin {} confirm score {}", admin.uid, id);
     let mut score = Score::find_by_id(id)
+        .filter(score::Column::Completed.eq(true))
+        .filter(score::Column::Judge.is_null())
         .one(&*DATABASE).await
         .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
         .ok_or(ErrorMessage::NotFound)?.into_active_model();

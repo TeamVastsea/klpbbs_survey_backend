@@ -62,7 +62,8 @@ pub async fn search_answer(
 ) -> Result<String, ErrorMessage> {
     info!("Admin {} search answer", user.uid);
 
-    let mut answers = Score::find();
+    let mut answers = Score::find()
+        .filter(score::Column::Completed.eq(true));
 
     if let Some(survey) = request.survey {
         answers = answers.filter(score::Column::Survey.eq(survey));
