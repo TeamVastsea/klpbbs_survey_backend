@@ -16,7 +16,7 @@ pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) -> Result<S
 
 async fn get_oauth_login(token: String) -> Result<UserData, ErrorMessage> {
     let res = Client::new()
-        .get("https://klpbbs.com/plugin.php")
+        .get(&OAUTH_CONFIG.klpbbs_url)
         .query(&OAuthLoginQuery::new(token))
         .send()
         .await

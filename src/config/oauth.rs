@@ -8,5 +8,7 @@ pub struct OAuthConfig {
     pub app_id: String,
     #[serde_inline_default(String::from("111"))]
     pub app_key: String,
+    #[serde_inline_default(String::from("https://klpbbs.com/plugin.php"))]
+    pub klpbbs_url: String,
 }
 
