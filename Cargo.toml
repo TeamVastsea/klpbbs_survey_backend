@@ -10,7 +10,7 @@ members = [".", "migration"]
 [dependencies]
 #tracing
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter", "chrono"] }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter", "chrono"] }
 tracing-appender = "0.2.3"
 
 #web
