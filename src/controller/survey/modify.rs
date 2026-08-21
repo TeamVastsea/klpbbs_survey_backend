@@ -1,26 +1,36 @@
+use crate::DATABASE;
 use crate::controller::error::ErrorMessage;
+use crate::dao::deserialize_datetime_as_z;
 use crate::dao::entity::{page, survey};
 use crate::service::token::AdminTokenInfo;
-use crate::DATABASE;
-use crate::dao::deserialize_datetime_as_z;
 use ammonia::clean;
 use axum::Json;
-use sea_orm::prelude::DateTime;
+use axum::extract::Path;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, IntoActiveModel, NotSet};
+use sea_orm::prelude::DateTime;
+use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, NotSet};
 use serde::Deserialize;
 use tracing::info;
 
-pub async fn modify_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request): Json<survey::Model>) -> Result<String, ErrorMessage> {
+pub async fn modify_survey(
+    AdminTokenInfo(admin): AdminTokenInfo,
+    Json(request): Json<survey::Model>,
+) -> Result<String, ErrorMessage> {
     info!("Admin {} modify survey {}", admin.uid, request.id);
     let survey = normalize_survey(request);
     let survey = survey.into_active_model().reset_all();
 
-    let result = survey.update(&*DATABASE).await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
+    let result = survey
+        .update(&*DATABASE)
+        .await
+        .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
     Ok(result.id.to_string())
 }
 
-pub async fn create_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request): Json<CreateSurveyRequest>) -> Result<String, ErrorMessage> {
+pub async fn create_survey(
+    AdminTokenInfo(admin): AdminTokenInfo,
+    Json(request): Json<CreateSurveyRequest>,
+) -> Result<String, ErrorMessage> {
     info!("Admin {} create survey", admin.uid);
     let survey = survey::ActiveModel {
         id: NotSet,
@@ -36,11 +46,32 @@ pub async fn create_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request):
         allow_re_submit: Set(request.allow_re_submit),
     };
 
-    let survey = survey.insert(&*DATABASE).await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
-    
+    let survey = survey
+        .insert(&*DATABASE)
+        .await
+        .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
+
     page::Model::new_page(request.title, survey.id, 1).await;
 
     Ok(survey.id.to_string())
+}
+
+pub async fn delete_survey(
+    AdminTokenInfo(admin): AdminTokenInfo,
+    Path(id): Path<i32>,
+) -> Result<String, ErrorMessage> {
+    info!("Admin {} delete survey {}", admin.uid, id);
+
+    let result = survey::Entity::delete_by_id(id)
+        .exec(&*DATABASE)
+        .await
+        .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
+
+    if result.rows_affected == 0 {
+        return Err(ErrorMessage::NotFound);
+    }
+
+    Ok(id.to_string())
 }
 
 #[derive(Deserialize)]

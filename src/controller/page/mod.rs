@@ -1,11 +1,16 @@
-use axum::routing::get;
 use axum::Router;
+use axum::routing::get;
 
-mod query;
 mod modify;
+mod query;
 
 pub fn get_page_routes() -> Router {
     Router::new()
-        .route("/", get(query::get_page_by_index).post(modify::new_page).put(modify::modify_page))
-    // .route("/:id", get(query::get_page))
+        .route(
+            "/",
+            get(query::get_page_by_index)
+                .post(modify::new_page)
+                .put(modify::modify_page),
+        )
+        .route("/{id}", axum::routing::delete(modify::delete_page))
 }
