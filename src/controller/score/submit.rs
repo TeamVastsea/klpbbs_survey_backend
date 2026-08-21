@@ -8,26 +8,34 @@ use axum::extract::{Path, Query};
 use axum::Json;
 use log::info;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, IntoActiveModel, PaginatorTrait, QueryFilter, QuerySelect, Select, SelectColumns, TryIntoModel};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter, Select, TryIntoModel};
 use serde::Deserialize;
 use serde_json::Value;
 
-fn find_updatable_score(id: i32, user: &str) -> Select<score::Entity> {
+fn find_open_survey(id: i32, now: chrono::NaiveDateTime) -> Select<survey::Entity> {
+    Survey::find_by_id(id)
+        .filter(survey::Column::AllowSubmit.eq(true))
+        .filter(survey::Column::StartDate.lte(now))
+        .filter(survey::Column::EndDate.gte(now))
+}
+
+fn find_updatable_score(id: i32, user: &str, survey: i32) -> Select<score::Entity> {
     Score::find_by_id(id)
         .filter(score::Column::User.eq(user))
+        .filter(score::Column::Survey.eq(survey))
         .filter(score::Column::Completed.eq(false))
         .filter(score::Column::Judge.is_null())
 }
 
 pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>) -> Result<String, ErrorMessage> {
-    #[derive(FromQueryResult)]
-    struct SurveyAllowReSubmit {
-        allow_re_submit: bool,
-    }
-    
     if !request.content.is_object() { 
         return Err(ErrorMessage::InvalidParams("content".to_string()));
     }
+
+    let survey = find_open_survey(request.survey, chrono::Local::now().naive_local())
+        .one(&*DATABASE).await
+        .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
+        .ok_or(ErrorMessage::NotFound)?;
 
     let score = match request.id {
         None => {
@@ -35,23 +43,14 @@ pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>)
                 .filter(score::Column::User.eq(&user.uid))
                 .filter(score::Column::Survey.eq(request.survey))
                 .count(&*DATABASE).await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
-            if count > 0 {
-                let survey = Survey::find_by_id(request.survey)
-                    .select_only()
-                    .select_column(survey::Column::AllowReSubmit)
-                    .into_model::<SurveyAllowReSubmit>()
-                    .one(&*DATABASE).await
-                    .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
-                    .ok_or(ErrorMessage::NotFound)?;
-                if !survey.allow_re_submit {
-                    return Err(ErrorMessage::TooManySubmit);
-                }
+            if count > 0 && !survey.allow_re_submit {
+                return Err(ErrorMessage::TooManySubmit);
             }
 
             score::ActiveModel::new(&user.uid, request.content, request.survey)
         }
         Some(id) => {
-            let model = find_updatable_score(id, &user.uid)
+            let model = find_updatable_score(id, &user.uid, request.survey)
                 .one(&*DATABASE).await
                 .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
                 .ok_or(ErrorMessage::NotFound)?;
@@ -76,13 +75,20 @@ pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>)
 }
 
 pub async fn finish(TokenInfo(user): TokenInfo, Query(query): Query<FinishQuery>) -> Result<(), ErrorMessage> {
-    let mut score = Score::find_by_id(query.id)
+    let score = Score::find_by_id(query.id)
         .filter(score::Column::User.eq(&user.uid))
         .filter(score::Column::Completed.eq(false))
         .filter(score::Column::Judge.is_null())
         .one(&*DATABASE).await
         .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
-        .ok_or(ErrorMessage::NotFound)?.into_active_model();
+        .ok_or(ErrorMessage::NotFound)?;
+
+    find_open_survey(score.survey, chrono::Local::now().naive_local())
+        .one(&*DATABASE).await
+        .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
+        .ok_or(ErrorMessage::NotFound)?;
+
+    let mut score = score.into_active_model();
 
     score.completed = Set(true);
     score.update_time = Set(chrono::Utc::now().naive_local());
@@ -143,17 +149,34 @@ pub struct FinishQuery {
 
 #[cfg(test)]
 mod tests {
-    use super::find_updatable_score;
+    use super::{find_open_survey, find_updatable_score};
+    use chrono::NaiveDate;
     use sea_orm::{DbBackend, QueryTrait};
 
     #[test]
     fn unfinished_score_lookup_is_scoped_to_owner() {
-        let statement = find_updatable_score(42, "owner-1").build(DbBackend::Postgres);
+        let statement = find_updatable_score(42, "owner-1", 7).build(DbBackend::Postgres);
         let sql = statement.to_string();
 
         assert!(sql.contains(r#""score"."id" = 42"#));
         assert!(sql.contains(r#""score"."user" = 'owner-1'"#));
+        assert!(sql.contains(r#""score"."survey" = 7"#));
         assert!(sql.contains(r#""score"."completed" = FALSE"#));
         assert!(sql.contains(r#""score"."judge" IS NULL"#));
+    }
+
+    #[test]
+    fn survey_lookup_requires_an_open_submission_window() {
+        let now = NaiveDate::from_ymd_opt(2026, 8, 21)
+            .unwrap()
+            .and_hms_opt(12, 0, 0)
+            .unwrap();
+        let statement = find_open_survey(7, now).build(DbBackend::Postgres);
+        let sql = statement.to_string();
+
+        assert!(sql.contains(r#""survey"."id" = 7"#));
+        assert!(sql.contains(r#""survey"."allow_submit" = TRUE"#));
+        assert!(sql.contains(r#""survey"."start_date" <= '2026-08-21 12:00:00'"#));
+        assert!(sql.contains(r#""survey"."end_date" >= '2026-08-21 12:00:00'"#));
     }
 }
