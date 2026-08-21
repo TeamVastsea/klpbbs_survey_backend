@@ -1,12 +1,16 @@
-use crate::controller::error::ErrorMessage;
-use crate::dao::model::user_data::UserData;
 use crate::OAUTH_CONFIG;
+use crate::controller::error::ErrorMessage;
+use crate::dao::entity::prelude::User as UserEntity;
+use crate::dao::model::user_data::UserData;
 use axum::extract::Query;
 use reqwest::Client;
+use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-pub async fn oauth_callback(Query(query): Query<OauthCallbackQuery>) -> Result<String, ErrorMessage> {
+pub async fn oauth_callback(
+    Query(query): Query<OauthCallbackQuery>,
+) -> Result<String, ErrorMessage> {
     let data = get_oauth_login(query.token).await?;
 
     debug!("User data: {:?}", data);
@@ -34,7 +38,7 @@ async fn get_oauth_login(token: String) -> Result<UserData, ErrorMessage> {
     debug!("Oauth replied: {:?}", res);
 
     let user: User = serde_json::from_str(&res).map_err(|_| ErrorMessage::InvalidToken)?;
-    Ok(user.data.to_user_data().await)
+    user.data.to_user_data().await
 }
 
 #[derive(Deserialize, Debug)]
@@ -76,18 +80,24 @@ struct User {
 }
 
 impl CallbackUserData {
-    async fn to_user_data(&self) -> UserData {
-        let user = UserData::find_by_id(&self.uid).await;
+    async fn to_user_data(&self) -> Result<UserData, ErrorMessage> {
+        let user = UserEntity::find_by_id(&self.uid)
+            .one(&*crate::DATABASE)
+            .await
+            .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
         match user {
-            Some(user) => user,
+            Some(user) if user.disabled => Err(ErrorMessage::PermissionDenied),
+            Some(user) => Ok(user.into()),
             None => {
                 let user = UserData {
                     uid: self.uid.clone(),
                     username: self.username.clone(),
                     admin: false,
                 };
-                user.save().await.unwrap();
-                user
+                user.save()
+                    .await
+                    .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
+                Ok(user)
             }
         }
     }
