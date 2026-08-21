@@ -13,10 +13,7 @@ use tracing::info;
 
 pub async fn modify_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request): Json<survey::Model>) -> Result<String, ErrorMessage> {
     info!("Admin {} modify survey {}", admin.uid, request.id);
-    let survey = survey::Model {
-        description: clean(&request.description),
-        ..request
-    };
+    let survey = normalize_survey(request);
     let survey = survey.into_active_model().reset_all();
 
     let result = survey.update(&*DATABASE).await.map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?;
@@ -35,7 +32,7 @@ pub async fn create_survey(AdminTokenInfo(admin): AdminTokenInfo, Json(request):
         end_date: Set(request.end_date),
         allow_submit: Set(request.allow_submit),
         allow_view: Set(request.allow_view),
-        allow_judge: Set(request.allow_judge),
+        allow_judge: Set(true),
         allow_re_submit: Set(request.allow_re_submit),
     };
 
@@ -58,6 +55,43 @@ pub struct CreateSurveyRequest {
     pub end_date: DateTime,
     pub allow_submit: bool,
     pub allow_view: bool,
-    pub allow_judge: bool,
     pub allow_re_submit: bool,
+}
+
+fn normalize_survey(request: survey::Model) -> survey::Model {
+    survey::Model {
+        description: clean(&request.description),
+        allow_judge: true,
+        ..request
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_survey;
+    use crate::dao::entity::survey;
+    use chrono::NaiveDate;
+
+    #[test]
+    fn survey_updates_always_enable_judging() {
+        let timestamp = NaiveDate::from_ymd_opt(2026, 8, 22)
+            .unwrap()
+            .and_hms_opt(0, 0, 0)
+            .unwrap();
+        let survey = survey::Model {
+            id: 1,
+            title: "Survey".to_string(),
+            badge: "".to_string(),
+            description: "Description".to_string(),
+            image: "".to_string(),
+            start_date: timestamp,
+            end_date: timestamp,
+            allow_submit: true,
+            allow_view: true,
+            allow_judge: false,
+            allow_re_submit: false,
+        };
+
+        assert!(normalize_survey(survey).allow_judge);
+    }
 }
