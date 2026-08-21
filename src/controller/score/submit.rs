@@ -8,9 +8,16 @@ use axum::extract::{Path, Query};
 use axum::Json;
 use log::info;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, IntoActiveModel, PaginatorTrait, QueryFilter, QuerySelect, SelectColumns, TryIntoModel};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, FromQueryResult, IntoActiveModel, PaginatorTrait, QueryFilter, QuerySelect, Select, SelectColumns, TryIntoModel};
 use serde::Deserialize;
 use serde_json::Value;
+
+fn find_updatable_score(id: i32, user: &str) -> Select<score::Entity> {
+    Score::find_by_id(id)
+        .filter(score::Column::User.eq(user))
+        .filter(score::Column::Completed.eq(false))
+        .filter(score::Column::Judge.is_null())
+}
 
 pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>) -> Result<String, ErrorMessage> {
     #[derive(FromQueryResult)]
@@ -44,10 +51,7 @@ pub async fn submit(TokenInfo(user): TokenInfo, Json(request): Json<SubmitBody>)
             score::ActiveModel::new(&user.uid, request.content, request.survey)
         }
         Some(id) => {
-            let model = Score::find()
-                .filter(score::Column::Id.eq(id))
-                .filter(score::Column::Completed.eq(false))
-                .filter(score::Column::Judge.is_null())
+            let model = find_updatable_score(id, &user.uid)
                 .one(&*DATABASE).await
                 .map_err(|e| ErrorMessage::DatabaseError(e.to_string()))?
                 .ok_or(ErrorMessage::NotFound)?;
@@ -135,4 +139,21 @@ pub struct SubmitBody {
 #[derive(Deserialize)]
 pub struct FinishQuery {
     id: i32,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::find_updatable_score;
+    use sea_orm::{DbBackend, QueryTrait};
+
+    #[test]
+    fn unfinished_score_lookup_is_scoped_to_owner() {
+        let statement = find_updatable_score(42, "owner-1").build(DbBackend::Postgres);
+        let sql = statement.to_string();
+
+        assert!(sql.contains(r#""score"."id" = 42"#));
+        assert!(sql.contains(r#""score"."user" = 'owner-1'"#));
+        assert!(sql.contains(r#""score"."completed" = FALSE"#));
+        assert!(sql.contains(r#""score"."judge" IS NULL"#));
+    }
 }
