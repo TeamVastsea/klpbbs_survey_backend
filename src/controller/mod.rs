@@ -4,6 +4,7 @@ mod page;
 mod ping;
 mod question;
 mod score;
+mod statistics;
 mod survey;
 mod user;
 
@@ -13,6 +14,7 @@ use axum::routing::{delete, get};
 pub fn all_routers() -> Router {
     Router::new()
         .route("/ping", get(ping::ping))
+        .route("/statistics", get(statistics::get_statistics))
         .route(
             "/user",
             get(user::get_user_info).delete(user::invalidate_token),
