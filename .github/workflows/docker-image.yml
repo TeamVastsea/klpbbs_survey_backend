@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - next
 
 jobs:
   build_docker:
@@ -17,10 +18,10 @@ jobs:
           images: |
             ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}
             ${{ vars.CR }}/${{ vars.NAMESPACE }}/${{ vars.IMAGE_NAME }}
-            ${{ vars.ACR }}/${{ vars.NAMESPACE }}/${{ vars.IMAGE_NAME }}
           tags: |
             type=sha
-            latest
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
@@ -32,12 +33,12 @@ jobs:
           registry: ${{ vars.CR }}
           username: ${{ github.actor }}
           password: ${{ secrets.CR_TOKEN }}
-      - name: Login to ACR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ vars.ACR }}
-          username: ${{ vars.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+      # - name: Login to ACR
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ${{ vars.ACR }}
+      #     username: ${{ vars.ACR_USERNAME }}
+      #     password: ${{ secrets.ACR_PASSWORD }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
